@@ -4,9 +4,11 @@ import com.finsight.user.persistence.UserCredential;
 import com.finsight.user.persistence.UserCredentialRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class DevAuthService {
@@ -52,6 +54,19 @@ public class DevAuthService {
         userCredential.setPasswordHash(passwordEncoder.encode(password));
         userCredentialRepository.save(userCredential);
         return true;
+    }
+
+    @Transactional
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        UserCredential user = userCredentialRepository.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Current password is incorrect");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userCredentialRepository.save(user);
     }
 
     private String normalizeEmail(String email) {

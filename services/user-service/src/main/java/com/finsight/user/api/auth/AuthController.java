@@ -49,6 +49,15 @@ public class AuthController {
         return ResponseEntity.ok(authSessionService.refreshSession(request.refreshToken()));
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        devAuthService.changePassword(jwt.getSubject(), request.currentPassword(), request.newPassword());
+        authSessionService.logoutAllSessions(jwt);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt jwt) {
         authSessionService.logout(jwt);

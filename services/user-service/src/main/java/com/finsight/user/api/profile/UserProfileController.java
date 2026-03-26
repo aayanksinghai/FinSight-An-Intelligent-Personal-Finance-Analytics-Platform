@@ -27,6 +27,11 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfileService.getProfile(jwt.getSubject()));
     }
 
+    @GetMapping("/security")
+    public ResponseEntity<UserSecurityResponse> getSecurityOverview(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(userProfileService.getSecurityOverview(jwt.getSubject()));
+    }
+
     @PutMapping
     public ResponseEntity<UserProfileResponse> updateProfile(
             @AuthenticationPrincipal Jwt jwt,
@@ -40,4 +45,3 @@ public class UserProfileController {
         return ResponseEntity.noContent().build();
     }
 }
-

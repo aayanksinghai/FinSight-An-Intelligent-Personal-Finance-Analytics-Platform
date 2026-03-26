@@ -2,6 +2,7 @@ package com.finsight.user.profile;
 
 import com.finsight.user.api.profile.UpdateUserProfileRequest;
 import com.finsight.user.api.profile.UserProfileResponse;
+import com.finsight.user.api.profile.UserSecurityResponse;
 import com.finsight.user.persistence.UserCredential;
 import com.finsight.user.persistence.UserCredentialRepository;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,20 @@ public class UserProfileService {
     public UserProfileResponse getProfile(String email) {
         UserCredential user = requireUser(email);
         return toResponse(user);
+    }
+
+    @Transactional(readOnly = true)
+    public UserSecurityResponse getSecurityOverview(String email) {
+        UserCredential user = requireUser(email);
+        boolean profileConfigured = user.getFullName() != null
+                || user.getCity() != null
+                || user.getAgeGroup() != null
+                || user.getMonthlyIncome() != null;
+        return new UserSecurityResponse(
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                profileConfigured);
     }
 
     @Transactional
@@ -68,4 +83,3 @@ public class UserProfileService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 }
-

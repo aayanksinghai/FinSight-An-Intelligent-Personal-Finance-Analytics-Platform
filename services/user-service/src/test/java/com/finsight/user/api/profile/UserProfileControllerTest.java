@@ -39,6 +39,12 @@ class UserProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
 
+        mockMvc.perform(get("/api/users/me/security")
+                        .with(jwtFor(email)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.profileConfigured").value(false));
+
         mockMvc.perform(put("/api/users/me")
                         .with(jwtFor(email))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -54,6 +60,11 @@ class UserProfileControllerTest {
                 .andExpect(jsonPath("$.fullName").value("Aayan Singh"))
                 .andExpect(jsonPath("$.city").value("Jaipur"))
                 .andExpect(jsonPath("$.ageGroup").value("18-24"));
+
+        mockMvc.perform(get("/api/users/me/security")
+                        .with(jwtFor(email)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profileConfigured").value(true));
     }
 
     @Test
@@ -74,6 +85,8 @@ class UserProfileControllerTest {
     void profileEndpointsShouldRequireAuthentication() throws Exception {
         mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/users/me/security"))
+                .andExpect(status().isUnauthorized());
     }
 
     private void registerUser(String email, String password) throws Exception {
@@ -92,4 +105,3 @@ class UserProfileControllerTest {
         return SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt -> jwt.subject(email));
     }
 }
-

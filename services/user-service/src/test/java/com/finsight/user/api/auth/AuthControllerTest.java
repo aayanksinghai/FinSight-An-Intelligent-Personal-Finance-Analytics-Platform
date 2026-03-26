@@ -238,6 +238,49 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.refreshToken").isString());
     }
 
+    @Test
+    void changePasswordShouldInvalidateOldPasswordAndAcceptNewPassword() throws Exception {
+        String email = "change-pass-" + UUID.randomUUID() + "@finsight.local";
+        String oldPassword = "StrongP@ss1";
+        String newPassword = "NewStrongP@ss2";
+
+        registerUser(email, oldPassword);
+        JsonNode login = login(email, oldPassword);
+        String accessToken = login.get("accessToken").asText();
+
+        mockMvc.perform(post("/api/users/auth/change-password")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "currentPassword": "%s",
+                                  "newPassword": "%s"
+                                }
+                                """.formatted(oldPassword, newPassword)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/users/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(email, oldPassword)))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/users/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(email, newPassword)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString());
+    }
+
     private void registerUser(String email, String password) throws Exception {
         mockMvc.perform(post("/api/users/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
