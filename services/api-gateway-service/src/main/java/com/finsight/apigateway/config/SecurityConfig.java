@@ -16,9 +16,11 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/api/**").permitAll()
-                        .anyExchange().authenticated())
+                        .pathMatchers("/api/users/ping").permitAll()
+                        .pathMatchers("/api/**").authenticated()
+                        .anyExchange().permitAll())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
+                }))
                 .build();
     }
 }
-
