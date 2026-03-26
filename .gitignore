@@ -1,0 +1,13 @@
+# IDE
+.idea/
+
+# Maven
+**/target/
+
+# Environment files
+**/.env
+**/.env.*
+
+# Logs
+*.log
+
