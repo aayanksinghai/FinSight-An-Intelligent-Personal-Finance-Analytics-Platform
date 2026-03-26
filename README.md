@@ -113,7 +113,7 @@ Complete each slice, test manually, then move forward.
 
 Next recommended implementation slice:
 
-- Implement user registration with validation and persistent storage (PostgreSQL + Flyway), then replace the temporary dev credential login check.
+- Add profile update and account deletion endpoints with role-aware authorization, then introduce JWT refresh/logout flow.
 
 ## Quick local auth smoke test
 
