@@ -71,7 +71,7 @@ Complete each slice, test manually, then move forward.
    - `/actuator/health` reachable per service
 2. **Gateway routing baseline**
    - Route `/api/users/**` to `user-service`
-   - Add simple JWT filter stub
+   - Baseline JWT enforcement path in gateway
 3. **User registration (email/password only)**
    - Register endpoint + validation + password hashing
 4. **User login + JWT issue**
@@ -109,12 +109,24 @@ Complete each slice, test manually, then move forward.
 20. **Admin operational controls**
     - model threshold config + retrain trigger + ingestion metrics
 
-## What to implement next (first working piece)
+## What to implement next
 
 Next recommended implementation slice:
 
-- Gateway static route + user-service health and a sample `/api/users/ping` endpoint.
-- This gives you a complete request path to test quickly before auth/business logic.
+- Implement user registration with validation and persistent storage (PostgreSQL + Flyway), then replace the temporary dev credential login check.
+
+## Quick local auth smoke test
+
+Current dev bootstrap login credentials:
+- Email: `demo@finsight.local`
+- Password: `Passw0rd!123`
+
+```bash
+mvn -q -pl services/user-service spring-boot:run
+mvn -q -pl services/api-gateway-service spring-boot:run -Dspring-boot.run.arguments=--server.port=8090
+curl -sS -X POST "http://localhost:8090/api/users/auth/register" -H "Content-Type: application/json" -d '{"email":"new-user@finsight.local","password":"StrongP@ss1"}'
+curl -sS -X POST "http://localhost:8090/api/users/auth/login" -H "Content-Type: application/json" -d '{"email":"new-user@finsight.local","password":"StrongP@ss1"}'
+```
 
 ## Build
 
