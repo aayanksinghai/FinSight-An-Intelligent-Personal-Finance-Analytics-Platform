@@ -62,6 +62,9 @@ security:
       KWnB+f9hTiwSfWts1ziZ+CqvdM26h7vSMC8KJQiBwmNiVXP2bkrYD//EUVc4Tlcv
       cqgFzJzbvaNHKSVPDEVQkFhP
       -----END PRIVATE KEY-----
+  tokens:
+    cleanup-interval-ms: 900000
+    cleanup-retention-seconds: 259200
 
 server:
   port: 8081

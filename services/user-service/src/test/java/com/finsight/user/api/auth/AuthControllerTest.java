@@ -184,6 +184,28 @@ class AuthControllerTest {
     }
 
     @Test
+    void logoutAllShouldInvalidateExistingRefreshTokens() throws Exception {
+        String email = "logout-all-" + UUID.randomUUID() + "@finsight.local";
+        String password = "StrongP@ss1";
+        registerUser(email, password);
+
+        JsonNode login = login(email, password);
+        String accessToken = login.get("accessToken").asText();
+        String refreshToken = login.get("refreshToken").asText();
+
+        mockMvc.perform(post("/api/users/auth/logout-all")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/users/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "refreshToken": "%s" }
+                                """.formatted(refreshToken)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void loginShouldRejectInvalidCredentials() throws Exception {
         mockMvc.perform(post("/api/users/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

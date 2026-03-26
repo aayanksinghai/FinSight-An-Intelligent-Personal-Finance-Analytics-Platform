@@ -55,6 +55,16 @@ public class AuthSessionService {
 
     @Transactional
     public void logout(Jwt accessJwt) {
+        revokeAccessToken(accessJwt);
+    }
+
+    @Transactional
+    public void logoutAllSessions(Jwt accessJwt) {
+        revokeAccessToken(accessJwt);
+        refreshTokenSessionRepository.revokeActiveByUserEmail(accessJwt.getSubject(), Instant.now());
+    }
+
+    private void revokeAccessToken(Jwt accessJwt) {
         Object jtiClaim = accessJwt.getClaims().get("jti");
         if (jtiClaim instanceof String tokenJti && !tokenJti.isBlank()) {
             RevokedAccessToken revoked = new RevokedAccessToken();
@@ -62,8 +72,6 @@ public class AuthSessionService {
             revoked.setExpiresAt(accessJwt.getExpiresAt());
             revokedAccessTokenRepository.save(revoked);
         }
-
-        refreshTokenSessionRepository.revokeActiveByUserEmail(accessJwt.getSubject(), Instant.now());
     }
 
     private void persistRefreshSession(String email, String refreshJti, Instant refreshExpiresAt) {

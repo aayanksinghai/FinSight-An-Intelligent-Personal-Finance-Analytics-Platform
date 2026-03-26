@@ -20,5 +20,13 @@ public interface RefreshTokenSessionRepository extends JpaRepository<RefreshToke
               and r.expiresAt > :revokedAt
             """)
     int revokeActiveByUserEmail(String userEmail, Instant revokedAt);
-}
 
+    @Modifying
+    @Query("""
+            delete from RefreshTokenSession r
+            where r.expiresAt < :now
+               or (r.usedAt is not null and r.usedAt < :cleanupBefore)
+               or (r.revokedAt is not null and r.revokedAt < :cleanupBefore)
+            """)
+    int deleteExpiredOrOldSessions(Instant now, Instant cleanupBefore);
+}

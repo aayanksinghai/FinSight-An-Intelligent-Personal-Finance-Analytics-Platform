@@ -54,4 +54,10 @@ public class AuthController {
         authSessionService.logout(jwt);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/logout-all")
+    public ResponseEntity<Void> logoutAll(@AuthenticationPrincipal Jwt jwt) {
+        authSessionService.logoutAllSessions(jwt);
+        return ResponseEntity.noContent().build();
+    }
 }
