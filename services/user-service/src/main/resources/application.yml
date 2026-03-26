@@ -1,6 +1,11 @@
 spring:
   application:
     name: user-service
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 
 server:
   port: 8081
@@ -14,4 +19,3 @@ management:
     health:
       probes:
         enabled: true
-

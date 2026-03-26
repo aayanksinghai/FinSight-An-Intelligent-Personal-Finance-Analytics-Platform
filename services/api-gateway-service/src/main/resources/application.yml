@@ -1,6 +1,13 @@
 spring:
   application:
     name: api-gateway-service
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-route
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/users/**
 
 server:
   port: 8080
@@ -14,4 +21,3 @@ management:
     health:
       probes:
         enabled: true
-
