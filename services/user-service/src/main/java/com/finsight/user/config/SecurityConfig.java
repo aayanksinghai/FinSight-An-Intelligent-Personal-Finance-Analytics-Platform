@@ -14,7 +14,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/api/users/ping", "/api/users/auth/login", "/api/users/auth/register").permitAll()
+                        .requestMatchers(
+                                "/api/users/ping",
+                                "/api/users/auth/login",
+                                "/api/users/auth/register",
+                                "/api/users/auth/refresh").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
                 }));

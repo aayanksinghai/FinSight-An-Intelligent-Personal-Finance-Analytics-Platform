@@ -22,6 +22,7 @@ security:
   jwt:
     issuer: finsight-user-service
     expiry-seconds: 3600
+    refresh-expiry-seconds: 604800
     public-key: |
       -----BEGIN PUBLIC KEY-----
       MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7FXQCJeeUm/la84gPQ

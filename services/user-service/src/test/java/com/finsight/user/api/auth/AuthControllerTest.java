@@ -13,10 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -101,7 +103,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginShouldReturnJwtForValidCredentials() throws Exception {
+    void loginShouldReturnTokenPairForValidCredentials() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/users/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -113,20 +115,72 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.refreshToken").isString())
                 .andReturn();
 
         JsonNode response = objectMapper.readTree(result.getResponse().getContentAsString());
-        String token = response.get("accessToken").asText();
+        String accessToken = response.get("accessToken").asText();
 
         Claims claims = Jwts.parser()
                 .verifyWith(parsePublicKey(PUBLIC_KEY_PEM))
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(accessToken)
                 .getPayload();
 
         org.junit.jupiter.api.Assertions.assertEquals("demo@finsight.local", claims.getSubject());
         org.junit.jupiter.api.Assertions.assertEquals("finsight-user-service", claims.getIssuer());
         org.junit.jupiter.api.Assertions.assertEquals("USER", claims.get("role", String.class));
+        org.junit.jupiter.api.Assertions.assertEquals("access", claims.get("typ", String.class));
+    }
+
+    @Test
+    void refreshShouldRotateTokenAndRejectReuse() throws Exception {
+        String email = "refresh-" + UUID.randomUUID() + "@finsight.local";
+        String password = "StrongP@ss1";
+        registerUser(email, password);
+
+        JsonNode login = login(email, password);
+        String refreshToken = login.get("refreshToken").asText();
+
+        MvcResult refreshResult = mockMvc.perform(post("/api/users/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "refreshToken": "%s" }
+                                """.formatted(refreshToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.refreshToken").isString())
+                .andReturn();
+
+        JsonNode refreshed = objectMapper.readTree(refreshResult.getResponse().getContentAsString());
+        org.junit.jupiter.api.Assertions.assertNotEquals(
+                refreshToken,
+                refreshed.get("refreshToken").asText());
+
+        mockMvc.perform(post("/api/users/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "refreshToken": "%s" }
+                                """.formatted(refreshToken)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutShouldRevokeCurrentAccessToken() throws Exception {
+        String email = "logout-" + UUID.randomUUID() + "@finsight.local";
+        String password = "StrongP@ss1";
+        registerUser(email, password);
+
+        JsonNode login = login(email, password);
+        String accessToken = login.get("accessToken").asText();
+
+        mockMvc.perform(post("/api/users/auth/logout")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -147,15 +201,7 @@ class AuthControllerTest {
         String email = "login-user-" + UUID.randomUUID() + "@finsight.local";
         String password = "AnotherP@ss1";
 
-        mockMvc.perform(post("/api/users/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "email": "%s",
-                                  "password": "%s"
-                                }
-                                """.formatted(email, password)))
-                .andExpect(status().isCreated());
+        registerUser(email, password);
 
         mockMvc.perform(post("/api/users/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +212,34 @@ class AuthControllerTest {
                                 }
                                 """.formatted(email, password)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isString());
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.refreshToken").isString());
+    }
+
+    private void registerUser(String email, String password) throws Exception {
+        mockMvc.perform(post("/api/users/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(email, password)))
+                .andExpect(status().isCreated());
+    }
+
+    private JsonNode login(String email, String password) throws Exception {
+        MvcResult loginResult = mockMvc.perform(post("/api/users/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(email, password)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(loginResult.getResponse().getContentAsString());
     }
 
     private RSAPublicKey parsePublicKey(String publicKeyPem) throws Exception {

@@ -1,10 +1,12 @@
 package com.finsight.user.api.auth;
 
+import com.finsight.user.security.AuthSessionService;
 import com.finsight.user.security.DevAuthService;
-import com.finsight.user.security.JwtTokenService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,11 +18,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthController {
 
     private final DevAuthService devAuthService;
-    private final JwtTokenService jwtTokenService;
+    private final AuthSessionService authSessionService;
 
-    public AuthController(DevAuthService devAuthService, JwtTokenService jwtTokenService) {
+    public AuthController(DevAuthService devAuthService, AuthSessionService authSessionService) {
         this.devAuthService = devAuthService;
-        this.jwtTokenService = jwtTokenService;
+        this.authSessionService = authSessionService;
     }
 
     @PostMapping("/register")
@@ -39,7 +41,17 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        String accessToken = jwtTokenService.issueToken(request.email());
-        return ResponseEntity.ok(new AuthTokenResponse(accessToken, "Bearer", jwtTokenService.getExpirySeconds()));
+        return ResponseEntity.ok(authSessionService.issueSession(request.email()));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthTokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authSessionService.refreshSession(request.refreshToken()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal Jwt jwt) {
+        authSessionService.logout(jwt);
+        return ResponseEntity.noContent().build();
     }
 }
