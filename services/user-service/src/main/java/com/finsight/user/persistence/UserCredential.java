@@ -4,7 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -22,8 +24,23 @@ public class UserCredential {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(name = "full_name", length = 120)
+    private String fullName;
+
+    @Column(name = "city", length = 120)
+    private String city;
+
+    @Column(name = "age_group", length = 40)
+    private String ageGroup;
+
+    @Column(name = "monthly_income", precision = 14, scale = 2)
+    private BigDecimal monthlyIncome;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @Column(name = "updated_at")
+    private Instant updatedAt;
 
     public UUID getId() {
         return id;
@@ -49,8 +66,44 @@ public class UserCredential {
         this.passwordHash = passwordHash;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getAgeGroup() {
+        return ageGroup;
+    }
+
+    public void setAgeGroup(String ageGroup) {
+        this.ageGroup = ageGroup;
+    }
+
+    public BigDecimal getMonthlyIncome() {
+        return monthlyIncome;
+    }
+
+    public void setMonthlyIncome(BigDecimal monthlyIncome) {
+        this.monthlyIncome = monthlyIncome;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
     }
 
     @PrePersist
@@ -62,5 +115,9 @@ public class UserCredential {
             createdAt = Instant.now();
         }
     }
-}
 
+    @PreUpdate
+    void beforeUpdate() {
+        updatedAt = Instant.now();
+    }
+}

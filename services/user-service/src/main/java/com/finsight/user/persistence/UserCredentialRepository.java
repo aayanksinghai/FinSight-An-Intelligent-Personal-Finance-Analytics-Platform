@@ -9,5 +9,6 @@ public interface UserCredentialRepository extends JpaRepository<UserCredential, 
     Optional<UserCredential> findByEmail(String email);
 
     boolean existsByEmail(String email);
-}
 
+    long deleteByEmail(String email);
+}
