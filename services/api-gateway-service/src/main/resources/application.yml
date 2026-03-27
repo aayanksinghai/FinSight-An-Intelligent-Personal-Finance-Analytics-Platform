@@ -3,6 +3,8 @@ spring:
     name: api-gateway-service
   cloud:
     gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials RETAIN_FIRST
       routes:
         - id: user-service-route
           uri: http://localhost:8081
@@ -28,7 +30,7 @@ security:
       -----END PUBLIC KEY-----
 
 server:
-  port: 8080
+  port: 8090
 
 management:
   endpoints:
