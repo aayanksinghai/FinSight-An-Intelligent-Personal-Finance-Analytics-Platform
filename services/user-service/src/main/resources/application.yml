@@ -19,6 +19,7 @@ security:
     dev-user:
       email: demo@finsight.local
       password: Passw0rd!123
+    password-reset-expiry-seconds: 900
   jwt:
     issuer: finsight-user-service
     expiry-seconds: 3600

@@ -69,6 +69,14 @@ public class DevAuthService {
         userCredentialRepository.save(user);
     }
 
+    @Transactional
+    public void resetPasswordWithoutCurrent(String email, String newPassword) {
+        UserCredential user = userCredentialRepository.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userCredentialRepository.save(user);
+    }
+
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase();
     }

@@ -2,6 +2,7 @@ package com.finsight.user.api.auth;
 
 import com.finsight.user.security.AuthSessionService;
 import com.finsight.user.security.DevAuthService;
+import com.finsight.user.security.PasswordResetService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,15 @@ public class AuthController {
 
     private final DevAuthService devAuthService;
     private final AuthSessionService authSessionService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(DevAuthService devAuthService, AuthSessionService authSessionService) {
+    public AuthController(
+            DevAuthService devAuthService,
+            AuthSessionService authSessionService,
+            PasswordResetService passwordResetService) {
         this.devAuthService = devAuthService;
         this.authSessionService = authSessionService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register")
@@ -67,6 +73,17 @@ public class AuthController {
     @PostMapping("/logout-all")
     public ResponseEntity<Void> logoutAll(@AuthenticationPrincipal Jwt jwt) {
         authSessionService.logoutAllSessions(jwt);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<PasswordResetResponse> requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
+        return ResponseEntity.ok(passwordResetService.requestPasswordReset(request.email()));
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<Void> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmRequest request) {
+        passwordResetService.confirmPasswordReset(request.resetToken(), request.newPassword());
         return ResponseEntity.noContent().build();
     }
 }

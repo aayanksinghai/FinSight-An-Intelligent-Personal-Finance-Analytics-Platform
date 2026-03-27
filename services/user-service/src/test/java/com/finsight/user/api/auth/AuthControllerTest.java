@@ -281,6 +281,98 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.accessToken").isString());
     }
 
+    @Test
+    void passwordResetFlowShouldAllowLoginWithNewPassword() throws Exception {
+        String email = "reset-" + UUID.randomUUID() + "@finsight.local";
+        String oldPassword = "StrongP@ss1";
+        String newPassword = "FreshP@ss9";
+        registerUser(email, oldPassword);
+
+        MvcResult requestResetResult = mockMvc.perform(post("/api/users/auth/password-reset/request")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s"
+                                }
+                                """.formatted(email)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resetToken").isString())
+                .andReturn();
+
+        JsonNode resetResponse = objectMapper.readTree(requestResetResult.getResponse().getContentAsString());
+        String resetToken = resetResponse.get("resetToken").asText();
+
+        mockMvc.perform(post("/api/users/auth/password-reset/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resetToken": "%s",
+                                  "newPassword": "%s"
+                                }
+                                """.formatted(resetToken, newPassword)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/users/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(email, oldPassword)))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/users/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(email, newPassword)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString());
+    }
+
+    @Test
+    void passwordResetTokenShouldBeSingleUse() throws Exception {
+        String email = "reset-once-" + UUID.randomUUID() + "@finsight.local";
+        registerUser(email, "StrongP@ss1");
+
+        MvcResult requestResetResult = mockMvc.perform(post("/api/users/auth/password-reset/request")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s"
+                                }
+                                """.formatted(email)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String resetToken = objectMapper.readTree(requestResetResult.getResponse().getContentAsString())
+                .get("resetToken").asText();
+
+        mockMvc.perform(post("/api/users/auth/password-reset/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resetToken": "%s",
+                                  "newPassword": "FreshP@ss9"
+                                }
+                                """.formatted(resetToken)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/users/auth/password-reset/confirm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resetToken": "%s",
+                                  "newPassword": "AnotherP@ss9"
+                                }
+                                """.formatted(resetToken)))
+                .andExpect(status().isUnauthorized());
+    }
+
     private void registerUser(String email, String password) throws Exception {
         mockMvc.perform(post("/api/users/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

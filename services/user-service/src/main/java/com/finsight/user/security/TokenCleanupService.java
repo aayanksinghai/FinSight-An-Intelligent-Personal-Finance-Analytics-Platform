@@ -1,5 +1,6 @@
 package com.finsight.user.security;
 
+import com.finsight.user.persistence.PasswordResetTokenRepository;
 import com.finsight.user.persistence.RefreshTokenSessionRepository;
 import com.finsight.user.persistence.RevokedAccessTokenRepository;
 import java.time.Instant;
@@ -17,14 +18,17 @@ public class TokenCleanupService {
 
     private final RefreshTokenSessionRepository refreshTokenSessionRepository;
     private final RevokedAccessTokenRepository revokedAccessTokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final long cleanupRetentionSeconds;
 
     public TokenCleanupService(
             RefreshTokenSessionRepository refreshTokenSessionRepository,
             RevokedAccessTokenRepository revokedAccessTokenRepository,
+            PasswordResetTokenRepository passwordResetTokenRepository,
             @Value("${security.tokens.cleanup-retention-seconds:259200}") long cleanupRetentionSeconds) {
         this.refreshTokenSessionRepository = refreshTokenSessionRepository;
         this.revokedAccessTokenRepository = revokedAccessTokenRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.cleanupRetentionSeconds = cleanupRetentionSeconds;
     }
 
@@ -36,13 +40,14 @@ public class TokenCleanupService {
 
         int removedRefresh = refreshTokenSessionRepository.deleteExpiredOrOldSessions(now, cleanupBefore);
         int removedRevokedAccess = revokedAccessTokenRepository.deleteByExpiresAtBefore(now);
+        int removedResetTokens = passwordResetTokenRepository.deleteByExpiresAtBefore(now);
 
-        if (removedRefresh > 0 || removedRevokedAccess > 0) {
+        if (removedRefresh > 0 || removedRevokedAccess > 0 || removedResetTokens > 0) {
             log.info(
-                    "Token cleanup removed {} refresh sessions and {} revoked access tokens",
+                    "Token cleanup removed {} refresh sessions, {} revoked access tokens, {} password reset tokens",
                     removedRefresh,
-                    removedRevokedAccess);
+                    removedRevokedAccess,
+                    removedResetTokens);
         }
     }
 }
-

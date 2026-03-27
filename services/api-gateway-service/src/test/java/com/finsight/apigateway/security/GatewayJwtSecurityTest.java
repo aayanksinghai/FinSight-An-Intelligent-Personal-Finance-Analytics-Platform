@@ -61,9 +61,11 @@ class GatewayJwtSecurityTest {
     }
 
     @Test
-    void protectedApiShouldAcceptValidRs256Token() throws Exception {
+    void protectedApiShouldAcceptValidRs256AccessToken() throws Exception {
         String token = Jwts.builder()
                 .subject("test-user")
+                .issuer("finsight-user-service")
+                .claim("typ", "access")
                 .issuedAt(Date.from(Instant.now()))
                 .expiration(Date.from(Instant.now().plusSeconds(600)))
                 .signWith(parsePrivateKey(PRIVATE_KEY_PEM), Jwts.SIG.RS256)
@@ -77,6 +79,24 @@ class GatewayJwtSecurityTest {
                 .expectStatus().isNotFound();
     }
 
+    @Test
+    void protectedApiShouldRejectRefreshTokenType() throws Exception {
+        String token = Jwts.builder()
+                .subject("test-user")
+                .issuer("finsight-user-service")
+                .claim("typ", "refresh")
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(600)))
+                .signWith(parsePrivateKey(PRIVATE_KEY_PEM), Jwts.SIG.RS256)
+                .compact();
+
+        webTestClient.get()
+                .uri("/api/secure/probe")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .exchange()
+                .expectStatus().isUnauthorized();
+    }
+
     private PrivateKey parsePrivateKey(String privateKeyPem) throws Exception {
         String normalized = privateKeyPem
                 .replace("-----BEGIN PRIVATE KEY-----", "")
@@ -87,4 +107,3 @@ class GatewayJwtSecurityTest {
         return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
     }
 }
-

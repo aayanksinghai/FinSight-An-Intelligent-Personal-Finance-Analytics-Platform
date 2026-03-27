@@ -20,7 +20,9 @@ public class SecurityConfig {
                                 "/api/users/ping",
                                 "/api/users/auth/login",
                                 "/api/users/auth/register",
-                                "/api/users/auth/refresh").permitAll()
+                                "/api/users/auth/refresh",
+                                "/api/users/auth/password-reset/request",
+                                "/api/users/auth/password-reset/confirm").permitAll()
                         .pathMatchers("/api/**").authenticated()
                         .anyExchange().permitAll())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {

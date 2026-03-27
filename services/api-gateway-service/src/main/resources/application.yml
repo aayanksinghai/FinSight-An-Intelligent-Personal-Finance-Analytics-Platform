@@ -11,6 +11,7 @@ spring:
 
 security:
   jwt:
+    issuer: finsight-user-service
     public-key: |
       -----BEGIN PUBLIC KEY-----
       MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7FXQCJeeUm/la84gPQ
