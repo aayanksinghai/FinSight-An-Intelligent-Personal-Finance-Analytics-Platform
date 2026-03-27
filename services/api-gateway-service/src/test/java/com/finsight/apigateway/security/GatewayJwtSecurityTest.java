@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -62,14 +63,7 @@ class GatewayJwtSecurityTest {
 
     @Test
     void protectedApiShouldAcceptValidRs256AccessToken() throws Exception {
-        String token = Jwts.builder()
-                .subject("test-user")
-                .issuer("finsight-user-service")
-                .claim("typ", "access")
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plusSeconds(600)))
-                .signWith(parsePrivateKey(PRIVATE_KEY_PEM), Jwts.SIG.RS256)
-                .compact();
+        String token = buildToken("test-user", "USER", "access");
 
         webTestClient.get()
                 .uri("/api/secure/probe")
@@ -81,20 +75,73 @@ class GatewayJwtSecurityTest {
 
     @Test
     void protectedApiShouldRejectRefreshTokenType() throws Exception {
-        String token = Jwts.builder()
-                .subject("test-user")
-                .issuer("finsight-user-service")
-                .claim("typ", "refresh")
-                .issuedAt(Date.from(Instant.now()))
-                .expiration(Date.from(Instant.now().plusSeconds(600)))
-                .signWith(parsePrivateKey(PRIVATE_KEY_PEM), Jwts.SIG.RS256)
-                .compact();
+        String token = buildToken("test-user", "USER", "refresh");
 
         webTestClient.get()
                 .uri("/api/secure/probe")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .exchange()
                 .expectStatus().isUnauthorized();
+    }
+
+    @Test
+    void adminApiShouldRejectNonAdminUser() throws Exception {
+        String token = buildToken("test-user", "USER", "access");
+
+        webTestClient.get()
+                .uri("/api/admin/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    void adminApiShouldPassGatewayRoleCheckForAdminToken() throws Exception {
+        String token = buildToken("admin@finsight.local", "ADMIN", "access");
+
+        webTestClient.get()
+                .uri("/api/admin/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .exchange()
+                // Route forwards to localhost:8081 in test runtime; gateway auth has already passed here.
+                .expectStatus().is5xxServerError();
+    }
+
+    @Test
+    void adminPatchApiShouldRejectNonAdminUser() throws Exception {
+        String token = buildToken("test-user", "USER", "access");
+
+        webTestClient.patch()
+                .uri("/api/admin/users/test-user@finsight.local/deactivate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
+    @Test
+    void adminPatchApiShouldPassGatewayRoleCheckForAdminToken() throws Exception {
+        String token = buildToken("admin@finsight.local", "ADMIN", "access");
+
+        webTestClient.patch()
+                .uri("/api/admin/users/test-user@finsight.local/deactivate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .exchange()
+                // Route forwards to localhost:8081 in test runtime; gateway auth has already passed here.
+                .expectStatus().is5xxServerError();
+    }
+
+    private String buildToken(String subject, String role, String type) throws Exception {
+        return Jwts.builder()
+                .subject(subject)
+                .issuer("finsight-user-service")
+                .claim("role", role)
+                .claim("typ", type)
+                .issuedAt(Date.from(Instant.now()))
+                .expiration(Date.from(Instant.now().plusSeconds(600)))
+                .signWith(parsePrivateKey(PRIVATE_KEY_PEM), Jwts.SIG.RS256)
+                .compact();
     }
 
     private PrivateKey parsePrivateKey(String privateKeyPem) throws Exception {

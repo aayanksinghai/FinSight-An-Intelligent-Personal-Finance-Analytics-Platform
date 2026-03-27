@@ -8,6 +8,10 @@ spring:
           uri: http://localhost:8081
           predicates:
             - Path=/api/users/**
+        - id: admin-user-route
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/admin/**
 
 security:
   jwt:

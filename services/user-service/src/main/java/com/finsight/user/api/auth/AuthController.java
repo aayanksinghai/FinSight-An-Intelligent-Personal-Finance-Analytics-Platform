@@ -43,11 +43,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthTokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        if (!devAuthService.authenticate(request.email(), request.password())) {
+        DevAuthService.AuthenticatedUser user = devAuthService.authenticateUser(request.email(), request.password());
+        if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        return ResponseEntity.ok(authSessionService.issueSession(request.email()));
+        return ResponseEntity.ok(authSessionService.issueSession(user.email(), user.role()));
     }
 
     @PostMapping("/refresh")

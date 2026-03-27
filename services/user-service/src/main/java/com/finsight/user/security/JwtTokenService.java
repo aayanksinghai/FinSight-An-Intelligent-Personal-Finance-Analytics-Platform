@@ -38,10 +38,11 @@ public class JwtTokenService {
         this.refreshExpirySeconds = refreshExpirySeconds;
     }
 
-    public TokenPair issueTokenPair(String subjectEmail) {
+    public TokenPair issueTokenPair(String subjectEmail, String role) {
         Instant now = Instant.now();
         String accessJti = UUID.randomUUID().toString();
         String refreshJti = UUID.randomUUID().toString();
+        String normalizedRole = role == null ? "USER" : role;
 
         String accessToken = Jwts.builder()
                 .subject(subjectEmail)
@@ -50,7 +51,7 @@ public class JwtTokenService {
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusSeconds(expirySeconds)))
                 .claim("typ", "access")
-                .claim("role", "USER")
+                .claim("role", normalizedRole)
                 .signWith(privateKey, Jwts.SIG.RS256)
                 .compact();
 
@@ -62,6 +63,7 @@ public class JwtTokenService {
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(refreshExpiry))
                 .claim("typ", "refresh")
+                .claim("role", normalizedRole)
                 .signWith(privateKey, Jwts.SIG.RS256)
                 .compact();
 
@@ -88,6 +90,7 @@ public class JwtTokenService {
         return new ParsedRefreshToken(
                 claims.getSubject(),
                 claims.getId(),
+                claims.get("role", String.class),
                 claims.getExpiration().toInstant());
     }
 
@@ -128,6 +131,6 @@ public class JwtTokenService {
             Instant refreshExpiresAt) {
     }
 
-    public record ParsedRefreshToken(String subjectEmail, String tokenJti, Instant expiresAt) {
+    public record ParsedRefreshToken(String subjectEmail, String tokenJti, String role, Instant expiresAt) {
     }
 }

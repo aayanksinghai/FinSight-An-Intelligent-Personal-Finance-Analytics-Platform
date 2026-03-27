@@ -1,15 +1,12 @@
 spring:
-  application:
-    name: user-service
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/finsight_user}
-    username: ${DB_USERNAME:finsight}
-    password: ${DB_PASSWORD:finsight}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:finsight_user_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
   jpa:
     hibernate:
       ddl-auto: validate
-    open-in-view: false
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -66,19 +63,6 @@ security:
       KWnB+f9hTiwSfWts1ziZ+CqvdM26h7vSMC8KJQiBwmNiVXP2bkrYD//EUVc4Tlcv
       cqgFzJzbvaNHKSVPDEVQkFhP
       -----END PRIVATE KEY-----
-  tokens:
-    cleanup-interval-ms: 900000
-    cleanup-retention-seconds: 259200
 
-server:
-  port: 8081
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-  endpoint:
-    health:
-      probes:
-        enabled: true
+

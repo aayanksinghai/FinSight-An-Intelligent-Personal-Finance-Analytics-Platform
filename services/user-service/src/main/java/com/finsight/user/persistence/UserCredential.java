@@ -24,6 +24,12 @@ public class UserCredential {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(name = "role", nullable = false, length = 20)
+    private String role;
+
+    @Column(name = "deactivated_at")
+    private Instant deactivatedAt;
+
     @Column(name = "full_name", length = 120)
     private String fullName;
 
@@ -64,6 +70,22 @@ public class UserCredential {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public Instant getDeactivatedAt() {
+        return deactivatedAt;
+    }
+
+    public void setDeactivatedAt(Instant deactivatedAt) {
+        this.deactivatedAt = deactivatedAt;
     }
 
     public String getFullName() {
@@ -113,6 +135,9 @@ public class UserCredential {
         }
         if (createdAt == null) {
             createdAt = Instant.now();
+        }
+        if (role == null || role.isBlank()) {
+            role = "USER";
         }
     }
 

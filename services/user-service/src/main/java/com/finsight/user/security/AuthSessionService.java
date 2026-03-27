@@ -29,8 +29,8 @@ public class AuthSessionService {
     }
 
     @Transactional
-    public AuthTokenResponse issueSession(String email) {
-        JwtTokenService.TokenPair tokenPair = jwtTokenService.issueTokenPair(email);
+    public AuthTokenResponse issueSession(String email, String role) {
+        JwtTokenService.TokenPair tokenPair = jwtTokenService.issueTokenPair(email, role);
         persistRefreshSession(email, tokenPair.refreshJti(), tokenPair.refreshExpiresAt());
         return toAuthResponse(tokenPair);
     }
@@ -48,7 +48,7 @@ public class AuthSessionService {
         session.setUsedAt(Instant.now());
         refreshTokenSessionRepository.save(session);
 
-        JwtTokenService.TokenPair tokenPair = jwtTokenService.issueTokenPair(parsed.subjectEmail());
+        JwtTokenService.TokenPair tokenPair = jwtTokenService.issueTokenPair(parsed.subjectEmail(), parsed.role());
         persistRefreshSession(parsed.subjectEmail(), tokenPair.refreshJti(), tokenPair.refreshExpiresAt());
         return toAuthResponse(tokenPair);
     }
@@ -61,7 +61,12 @@ public class AuthSessionService {
     @Transactional
     public void logoutAllSessions(Jwt accessJwt) {
         revokeAccessToken(accessJwt);
-        refreshTokenSessionRepository.revokeActiveByUserEmail(accessJwt.getSubject(), Instant.now());
+        revokeRefreshSessionsByEmail(accessJwt.getSubject());
+    }
+
+    @Transactional
+    public void revokeRefreshSessionsByEmail(String email) {
+        refreshTokenSessionRepository.revokeActiveByUserEmail(email, Instant.now());
     }
 
     private void revokeAccessToken(Jwt accessJwt) {

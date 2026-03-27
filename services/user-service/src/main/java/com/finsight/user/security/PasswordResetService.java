@@ -19,16 +19,19 @@ public class PasswordResetService {
     private final UserCredentialRepository userCredentialRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final DevAuthService devAuthService;
+    private final AuthSessionService authSessionService;
     private final long resetExpirySeconds;
 
     public PasswordResetService(
             UserCredentialRepository userCredentialRepository,
             PasswordResetTokenRepository passwordResetTokenRepository,
             DevAuthService devAuthService,
+            AuthSessionService authSessionService,
             @Value("${security.auth.password-reset-expiry-seconds:900}") long resetExpirySeconds) {
         this.userCredentialRepository = userCredentialRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.devAuthService = devAuthService;
+        this.authSessionService = authSessionService;
         this.resetExpirySeconds = resetExpirySeconds;
     }
 
@@ -60,10 +63,10 @@ public class PasswordResetService {
         token.setUsedAt(Instant.now());
         passwordResetTokenRepository.save(token);
         devAuthService.resetPasswordWithoutCurrent(token.getUserEmail(), newPassword);
+        authSessionService.revokeRefreshSessionsByEmail(token.getUserEmail());
     }
 
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase();
     }
 }
-
