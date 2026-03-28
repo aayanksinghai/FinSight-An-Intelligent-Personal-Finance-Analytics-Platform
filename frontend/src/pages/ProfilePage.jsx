@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { changePassword } from '../api/authApi';
+import { changePassword, getPasswordPolicy } from '../api/authApi';
 import { deleteMyAccount, getMyProfile, getSecurityOverview, updateProfile } from '../api/profileApi';
 import { useAuthStore } from '../store/authStore';
 import Notice from '../components/Notice';
 import { extractApiError } from '../utils/errors';
+import { DEFAULT_PASSWORD_POLICY, getPasswordPolicyHint, isStrongPassword } from '../utils/validation';
 
 export default function ProfilePage() {
   const { clearSession } = useAuthStore();
@@ -12,6 +13,7 @@ export default function ProfilePage() {
   const [security, setSecurity] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [passwordPolicy, setPasswordPolicy] = useState(DEFAULT_PASSWORD_POLICY);
 
   const [profileForm, setProfileForm] = useState({
     fullName: '',
@@ -47,6 +49,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadData();
+
+    getPasswordPolicy()
+      .then(setPasswordPolicy)
+      .catch(() => {
+        // Keep default policy when backend policy endpoint is unavailable.
+      });
   }, []);
 
   async function submitProfile(event) {
@@ -71,6 +79,11 @@ export default function ProfilePage() {
     event.preventDefault();
     setMessage('');
     setError('');
+
+    if (!isStrongPassword(passwordForm.newPassword, passwordPolicy)) {
+      setError(getPasswordPolicyHint(passwordPolicy));
+      return;
+    }
 
     try {
       await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
@@ -161,6 +174,7 @@ export default function ProfilePage() {
               onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))}
               required
             />
+            <small className="muted">{getPasswordPolicyHint(passwordPolicy)}</small>
           </label>
           <button type="submit">Change password</button>
         </form>

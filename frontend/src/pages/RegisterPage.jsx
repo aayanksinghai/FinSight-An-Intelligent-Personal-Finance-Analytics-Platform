@@ -1,23 +1,39 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login, register } from '../api/authApi';
+import { getPasswordPolicy, login, register } from '../api/authApi';
 import Notice from '../components/Notice';
 import { extractApiError } from '../utils/errors';
 import { useAuthStore } from '../store/authStore';
+import { DEFAULT_PASSWORD_POLICY, getPasswordPolicyHint, isStrongPassword } from '../utils/validation';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { setSession } = useAuthStore();
   const [form, setForm] = useState({ email: '', password: '' });
+  const [passwordPolicy, setPasswordPolicy] = useState(DEFAULT_PASSWORD_POLICY);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getPasswordPolicy()
+      .then(setPasswordPolicy)
+      .catch(() => {
+        // Keep default policy when backend policy endpoint is unavailable.
+      });
+  }, []);
 
   async function onSubmit(event) {
     event.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
+
+    if (!isStrongPassword(form.password, passwordPolicy)) {
+      setError(getPasswordPolicyHint(passwordPolicy));
+      setLoading(false);
+      return;
+    }
 
     try {
       await register(form.email, form.password);
@@ -63,6 +79,7 @@ export default function RegisterPage() {
             onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
             required
           />
+          <small className="muted">{getPasswordPolicyHint(passwordPolicy)}</small>
         </label>
 
         <Notice type="success" text={message} />

@@ -36,6 +36,7 @@ public class SecurityConfig {
                                 "/api/users/auth/login",
                                 "/api/users/auth/register",
                                 "/api/users/auth/refresh",
+                                "/api/users/auth/password-policy",
                                 "/api/users/auth/password-reset/request",
                                 "/api/users/auth/password-reset/confirm").permitAll()
                         .pathMatchers("/api/admin/**").hasRole("ADMIN")

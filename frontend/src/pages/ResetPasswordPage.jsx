@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { confirmPasswordReset } from '../api/authApi';
+import { confirmPasswordReset, getPasswordPolicy } from '../api/authApi';
 import Notice from '../components/Notice';
 import { extractApiError } from '../utils/errors';
+import { DEFAULT_PASSWORD_POLICY, getPasswordPolicyHint, isStrongPassword } from '../utils/validation';
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ resetToken: '', newPassword: '' });
+  const [passwordPolicy, setPasswordPolicy] = useState(DEFAULT_PASSWORD_POLICY);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getPasswordPolicy()
+      .then(setPasswordPolicy)
+      .catch(() => {
+        // Keep default policy when backend policy endpoint is unavailable.
+      });
+  }, []);
 
   async function onSubmit(event) {
     event.preventDefault();
     setError('');
     setMessage('');
     setLoading(true);
+
+    if (!isStrongPassword(form.newPassword, passwordPolicy)) {
+      setError(getPasswordPolicyHint(passwordPolicy));
+      setLoading(false);
+      return;
+    }
 
     try {
       await confirmPasswordReset(form.resetToken, form.newPassword);
@@ -54,6 +70,7 @@ export default function ResetPasswordPage() {
             onChange={(event) => setForm((prev) => ({ ...prev, newPassword: event.target.value }))}
             required
           />
+          <small className="muted">{getPasswordPolicyHint(passwordPolicy)}</small>
         </label>
 
         <Notice type="success" text={message} />

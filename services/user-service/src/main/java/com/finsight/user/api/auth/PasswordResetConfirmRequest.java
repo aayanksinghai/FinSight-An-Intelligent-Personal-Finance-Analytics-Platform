@@ -7,8 +7,8 @@ public record PasswordResetConfirmRequest(
         @NotBlank String resetToken,
         @NotBlank
         @Pattern(
-                regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$",
-                message = "Password must have upper, lower, digit, special character and be at least 8 chars")
+                regexp = PasswordPolicy.REGEX,
+                message = PasswordPolicy.MESSAGE)
         String newPassword) {
 }
 

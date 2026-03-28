@@ -31,3 +31,8 @@ export async function confirmPasswordReset(resetToken, newPassword) {
   await apiClient.post('/api/users/auth/password-reset/confirm', { resetToken, newPassword });
 }
 
+export async function getPasswordPolicy() {
+  const { data } = await apiClient.get('/api/users/auth/password-policy');
+  return data;
+}
+

@@ -6,12 +6,25 @@ async function run() {
     throw new Error(`Ping failed with status ${ping.status}`);
   }
 
+  const email = `smoke-${Date.now()}@finsight.local`;
+  const password = 'StrongP@ss1';
+
+  const register = await fetch(`${baseUrl}/api/users/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+
+  if (!register.ok) {
+    throw new Error(`Register failed with status ${register.status}`);
+  }
+
   const login = await fetch(`${baseUrl}/api/users/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: 'demo@finsight.local',
-      password: 'Passw0rd!123'
+      email,
+      password
     })
   });
 

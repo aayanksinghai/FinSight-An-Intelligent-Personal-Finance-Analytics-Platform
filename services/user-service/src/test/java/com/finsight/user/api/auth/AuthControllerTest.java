@@ -53,6 +53,15 @@ class AuthControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
+    void passwordPolicyShouldBePublicAndReturnPolicyMetadata() throws Exception {
+        mockMvc.perform(get("/api/users/auth/password-policy"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.regex").isString())
+                .andExpect(jsonPath("$.hint").isString())
+                .andExpect(jsonPath("$.minLength").value(8));
+    }
+
+    @Test
     void registerShouldCreateUserWithStrongPassword() throws Exception {
         String email = "user-" + UUID.randomUUID() + "@finsight.local";
 

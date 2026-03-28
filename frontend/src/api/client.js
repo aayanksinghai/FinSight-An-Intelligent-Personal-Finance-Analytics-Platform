@@ -15,6 +15,7 @@ let refreshInProgress = null;
 const publicAuthPaths = [
   '/api/users/auth/login',
   '/api/users/auth/register',
+  '/api/users/auth/password-policy',
   '/api/users/auth/password-reset/request',
   '/api/users/auth/password-reset/confirm',
   '/api/users/ping'
