@@ -1,6 +1,45 @@
 spring:
   application:
     name: ingestion-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/finsight_ingestion}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB
+      max-request-size: 22MB
+
+security:
+  jwt:
+    issuer: finsight-user-service
+    public-key: |
+      -----BEGIN PUBLIC KEY-----
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7FXQCJeeUm/la84gPQ
+      vZV91fsWbhe/URGkzjKDTV/t0H1hbYeD/tJlqJMnRcmHhi6gbJiPULj4siffH0+u
+      tZd3XOS9xOa8Ujuxc1DPLWAt3wgmI/IYqPmuhalikNNsAwUR2T/9DHnFmpl/PXlT
+      9aFVDsWyG0iN8Kb3F825r0wI5UGiad+OM50rCT7IjD9RTquCtM5LaeX6I2aJzIN+
+      Ol92y/UmMAZFmknzeJ+37rLfQtURz+CF1HsOlQMcqAGuvHWdNpabwF/B39XlK59l
+      WOAXlPyozGH10AIzWHvhiKKo9qssXDftthpjqZKD2DQNQUUDcaeYOMD6aacfdIcn
+      PQIDAQAB
+      -----END PUBLIC KEY-----
+
+ingestion:
+  kafka:
+    topic: transactions.ingested
+  supported-types:
+    - text/csv
+    - application/vnd.ms-excel
+    - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+    - application/pdf
+    - application/octet-stream
 
 server:
   port: 8082
@@ -14,4 +53,3 @@ management:
     health:
       probes:
         enabled: true
-
