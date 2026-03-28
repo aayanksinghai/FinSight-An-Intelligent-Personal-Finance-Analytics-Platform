@@ -1,23 +1,17 @@
 package com.finsight.transaction.api;
 
 import com.finsight.transaction.service.TransactionService;
-import jakarta.validation.Valid;
-import java.time.Instant;
-import java.util.UUID;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -27,14 +21,6 @@ public class TransactionController {
 
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
-    }
-
-    @PostMapping
-    public ResponseEntity<TransactionResponse> create(
-            @AuthenticationPrincipal Jwt jwt,
-            @Valid @RequestBody CreateTransactionRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(transactionService.create(jwt.getSubject(), request));
     }
 
     @GetMapping
@@ -56,20 +42,24 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getById(jwt.getSubject(), id));
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<TransactionResponse> update(
+    @GetMapping("/summary")
+    public ResponseEntity<List<Map<String, Object>>> getSummary(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateTransactionRequest request) {
-        return ResponseEntity.ok(transactionService.update(jwt.getSubject(), id, request));
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to) {
+        // Default to last 30 days if bound is omitted
+        Instant end = (to != null) ? to : Instant.now();
+        Instant start = (from != null) ? from : end.minus(30, ChronoUnit.DAYS);
+        return ResponseEntity.ok(transactionService.getSummaryByType(jwt.getSubject(), start, end));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
+    @GetMapping("/categories")
+    public ResponseEntity<List<Map<String, Object>>> getCategories(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable UUID id) {
-        transactionService.delete(jwt.getSubject(), id);
-        return ResponseEntity.noContent().build();
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to) {
+        Instant end = (to != null) ? to : Instant.now();
+        Instant start = (from != null) ? from : end.minus(30, ChronoUnit.DAYS);
+        return ResponseEntity.ok(transactionService.getDebitSummaryByCategory(jwt.getSubject(), start, end));
     }
 }
-
