@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -9,7 +10,7 @@ import AdminPage from './pages/AdminPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
-function AppShell({ children }) {
+function AppShell({ children }: { children: ReactNode }) {
   return (
     <ProtectedRoute>
       <Layout>{children}</Layout>
@@ -20,11 +21,13 @@ function AppShell({ children }) {
 export default function App() {
   return (
     <Routes>
+      {/* Public auth routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+      {/* Protected user routes */}
       <Route
         path="/"
         element={
@@ -43,6 +46,7 @@ export default function App() {
         }
       />
 
+      {/* Admin-only route */}
       <Route
         path="/admin"
         element={
@@ -54,8 +58,8 @@ export default function App() {
         }
       />
 
+      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
-
