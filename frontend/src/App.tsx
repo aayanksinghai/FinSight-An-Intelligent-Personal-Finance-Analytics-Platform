@@ -7,6 +7,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
+import UploadPage from './pages/UploadPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -42,6 +43,15 @@ export default function App() {
         element={
           <AppShell>
             <ProfilePage />
+          </AppShell>
+        }
+      />
+
+      <Route
+        path="/upload"
+        element={
+          <AppShell>
+            <UploadPage />
           </AppShell>
         }
       />

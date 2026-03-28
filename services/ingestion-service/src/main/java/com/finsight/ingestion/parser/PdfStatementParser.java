@@ -1,5 +1,6 @@
 package com.finsight.ingestion.parser;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class PdfStatementParser {
         List<ParsedRow> rows = new ArrayList<>();
         int totalAttempted = 0;
 
-        PDDocument document = PDDocument.load(inputStream);
+        PDDocument document = Loader.loadPDF(inputStream.readAllBytes());
         PDFTextStripper stripper = new PDFTextStripper();
         stripper.setSortByPosition(true);
         String fullText = stripper.getText(document);

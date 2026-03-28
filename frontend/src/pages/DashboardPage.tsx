@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 // ─── Placeholder stat cards for features coming in future phases ─────────────
@@ -83,15 +84,18 @@ export default function DashboardPage() {
 
       {/* Charts placeholder — Phase 3 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="glass-card flex flex-col items-center justify-center gap-3 p-8 md:col-span-2">
+        <div className="glass-card flex flex-col items-center justify-center gap-4 p-8 md:col-span-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-full border border-brand/30 bg-brand/10 text-2xl">
             📊
           </div>
-          <p className="text-sm font-semibold text-[#edf2ff]">Spending charts coming in Phase 3</p>
+          <p className="text-sm font-semibold text-[#edf2ff]">Your charts will appear here after you upload a statement</p>
           <p className="max-w-sm text-center text-xs text-muted">
-            Monthly spend/income/savings breakdown, category pie chart, 12-month trend line,
-            and top merchants — all powered by Recharts and real transaction data.
+            Monthly spend breakdown, category pie chart, 12-month trend, and top merchants —
+            all powered by Recharts and your real transaction data (Phase 3).
           </p>
+          <Link to="/upload" className="btn-primary no-underline hover:no-underline">
+            ↑ Upload Your First Statement
+          </Link>
         </div>
       </div>
 
