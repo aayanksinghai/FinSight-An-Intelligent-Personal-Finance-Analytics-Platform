@@ -49,17 +49,30 @@ class KafkaWorker(threading.Thread):
                     
                     txn_id = payload.get("id")
                     desc = payload.get("rawDescription", "")
+                    amount = payload.get("amount", 0.0)
+                    owner_email = payload.get("ownerEmail", "")
+                    occurred_at = payload.get("occurredAt", "")
                     
                     logger.info(f"Categorizing transaction {txn_id}: {desc}")
                     
                     category = guess_category(desc)
                     merchant = clean_merchant(desc)
                     
+                    # Compute monthYear format from occurredAt (timestamp array [2026, 3, 29, 0, 0] or ISO string)
+                    month_year = ""
+                    if isinstance(occurred_at, list) and len(occurred_at) >= 2:
+                        month_year = f"{occurred_at[0]}-{occurred_at[1]:02d}"
+                    elif isinstance(occurred_at, str) and len(occurred_at) >= 7:
+                        month_year = occurred_at[0:7]
+                    
                     out_payload = {
                         "transactionId": txn_id,
                         "categoryName": category,
                         "merchant": merchant,
-                        "confidenceScore": 0.85
+                        "confidenceScore": 0.85,
+                        "amount": amount,
+                        "ownerEmail": owner_email,
+                        "monthYear": month_year
                     }
                     
                     producer.produce(

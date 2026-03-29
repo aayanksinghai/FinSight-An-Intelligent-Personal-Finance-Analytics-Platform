@@ -47,9 +47,9 @@ public class TransactionController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to) {
-        // Default to last 30 days if bound is omitted
+        
         Instant end = (to != null) ? to : Instant.now();
-        Instant start = (from != null) ? from : end.minus(30, ChronoUnit.DAYS);
+        Instant start = (from != null) ? from : Instant.EPOCH;
         return ResponseEntity.ok(transactionService.getSummaryByType(jwt.getSubject(), start, end));
     }
 
@@ -58,8 +58,9 @@ public class TransactionController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to) {
+        
         Instant end = (to != null) ? to : Instant.now();
-        Instant start = (from != null) ? from : end.minus(30, ChronoUnit.DAYS);
+        Instant start = (from != null) ? from : Instant.EPOCH;
         return ResponseEntity.ok(transactionService.getDebitSummaryByCategory(jwt.getSubject(), start, end));
     }
 }

@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import UploadPage from './pages/UploadPage';
+import BudgetPage from './pages/BudgetPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -52,6 +53,15 @@ export default function App() {
         element={
           <AppShell>
             <UploadPage />
+          </AppShell>
+        }
+      />
+
+      <Route
+        path="/budgets"
+        element={
+          <AppShell>
+            <BudgetPage />
           </AppShell>
         }
       />
