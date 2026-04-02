@@ -41,6 +41,11 @@ public class TransactionCategorizedConsumer {
             TransactionCategorizedEvent event = objectMapper.readValue(payload, TransactionCategorizedEvent.class);
             log.debug("Received categorized event for transaction: {}", event.transactionId());
 
+            if (event.transactionId() == null) {
+                log.warn("Received categorized transaction event with null ID. Skipping. Payload: {}", payload);
+                return;
+            }
+
             Transaction txn = transactionRepository.findById(event.transactionId())
                 .orElse(null);
 
