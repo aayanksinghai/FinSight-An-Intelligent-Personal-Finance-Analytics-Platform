@@ -18,15 +18,15 @@ public class TransactionCategorizedConsumer {
     private static final Logger log = LoggerFactory.getLogger(TransactionCategorizedConsumer.class);
 
     private final TransactionRepository transactionRepository;
-    private final CategoryRepository categoryRepository;
+    private final TransactionCategorizationService categorizationService;
     private final ObjectMapper objectMapper;
 
     public TransactionCategorizedConsumer(
             TransactionRepository transactionRepository,
-            CategoryRepository categoryRepository,
+            TransactionCategorizationService categorizationService,
             ObjectMapper objectMapper) {
         this.transactionRepository = transactionRepository;
-        this.categoryRepository = categoryRepository;
+        this.categorizationService = categorizationService;
         this.objectMapper = objectMapper;
     }
 
@@ -35,7 +35,6 @@ public class TransactionCategorizedConsumer {
         groupId = "${spring.kafka.consumer.group-id:transaction-service-group}",
         containerFactory = "kafkaListenerContainerFactory"
     )
-    @Transactional
     public void onTransactionCategorized(String payload) {
         try {
             TransactionCategorizedEvent event = objectMapper.readValue(payload, TransactionCategorizedEvent.class);
@@ -46,33 +45,28 @@ public class TransactionCategorizedConsumer {
                 return;
             }
 
-            Transaction txn = transactionRepository.findById(event.transactionId())
-                .orElse(null);
-
-            if (txn == null) {
-                log.warn("Transaction ID {} not found. Could not apply categorization.", event.transactionId());
-                return;
-            }
-
-            // Find category by name
-            if (event.categoryName() != null && !event.categoryName().isBlank()) {
-                Category category = categoryRepository.findByNameIgnoreCase(event.categoryName())
-                    .orElse(null);
+            // Retry mechanism to handle race condition with IngestionConsumer commit
+            Transaction txn = null;
+            for (int i = 0; i < 5; i++) {
+                // By not being @Transactional at the method level, findById will hit the DB fresh
+                txn = transactionRepository.findById(event.transactionId()).orElse(null);
+                if (txn != null) break;
                 
-                if (category != null) {
-                    txn.setCategory(category);
-                } else {
-                    log.warn("Category name '{}' from ML service not found in database. Keeping existing category.", event.categoryName());
+                log.info("Transaction {} not found yet in DB, retrying in 200ms... (attempt {})", event.transactionId(), i + 1);
+                try {
+                    Thread.sleep(200); 
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
 
-            // Update merchant if provided by ML model
-            if (event.merchant() != null && !event.merchant().isBlank()) {
-                txn.setNormalizedMerchant(event.merchant());
+            if (txn == null) {
+                log.warn("Transaction ID {} not found after multiple retries. Could not apply categorization.", event.transactionId());
+                return;
             }
 
-            transactionRepository.save(txn);
-            log.debug("Successfully categorized transaction {} to {}", txn.getId(), event.categoryName());
+            categorizationService.updateTransactionCategory(txn, event);
+            log.info("Successfully categorized transaction {} to {}", txn.getId(), event.categoryName());
 
         } catch (Exception e) {
             log.error("Failed to process categorized transaction payload: {}", e.getMessage(), e);
