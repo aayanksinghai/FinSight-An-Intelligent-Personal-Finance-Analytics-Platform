@@ -2,7 +2,7 @@ spring:
   application:
     name: transaction-service
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/finsight_user}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/finsight_user?currentSchema=transaction_schema}
     username: ${POSTGRES_USER:finsight}
     password: ${POSTGRES_PASSWORD:finsight}
     driver-class-name: org.postgresql.Driver
