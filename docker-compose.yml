@@ -58,6 +58,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
       SPRING_DATA_REDIS_HOST: redis
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
     depends_on:
       - postgres
       - redis
@@ -105,6 +107,9 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
+      SPRING_FLYWAY_TABLE: "flyway_schema_history_notification"
     depends_on:
       - postgres
       - kafka
@@ -118,6 +123,9 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
+      SPRING_FLYWAY_TABLE: "flyway_schema_history_admin"
     depends_on:
       - postgres
       - kafka
