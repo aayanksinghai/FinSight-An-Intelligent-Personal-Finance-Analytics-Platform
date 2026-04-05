@@ -57,6 +57,22 @@ pipeline {
                 sh 'docker-compose build'
             }
         }
+
+        stage('Push Docker Images to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('', 'DockerHubCred') {
+                        sh 'docker-compose push'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy with Ansible') {
+            steps {
+                sh 'ansible-playbook -i inventory.ini deploy.yml'
+            }
+        }
     }
 
     post {

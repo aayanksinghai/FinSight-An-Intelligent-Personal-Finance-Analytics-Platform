@@ -1,0 +1,16 @@
+---
+- name: Deploy FinSight Application
+  hosts: production
+  tasks:
+    - name: Pull latest Docker images from Docker Hub
+      command: docker-compose pull
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Deploy services with new images
+      command: docker-compose up -d
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Clean up old Docker images
+      command: docker image prune -f
