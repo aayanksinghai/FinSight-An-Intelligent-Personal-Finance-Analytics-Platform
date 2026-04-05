@@ -23,8 +23,8 @@ public class TransactionCategorizationConsumer {
     private final BudgetRepository budgetRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public TransactionCategorizationConsumer(ObjectMapper objectMapper, 
-                                            BudgetRepository budgetRepository, 
+    public TransactionCategorizationConsumer(ObjectMapper objectMapper,
+                                            BudgetRepository budgetRepository,
                                             KafkaTemplate<String, String> kafkaTemplate) {
         this.objectMapper = objectMapper;
         this.budgetRepository = budgetRepository;
@@ -36,59 +36,68 @@ public class TransactionCategorizationConsumer {
     public void onTransactionCategorized(String payloadStr) {
         try {
             TransactionCategorizedEvent event = objectMapper.readValue(payloadStr, TransactionCategorizedEvent.class);
-            log.info("Received categorized transaction {} for category {} amt {}", event.transactionId(), event.categoryName(), event.amount());
+            log.info("Received categorized transaction {} for category {} amt {}",
+                    event.transactionId(), event.categoryName(), event.amount());
 
-            if (event.amount() == null || event.ownerEmail() == null || event.monthYear() == null || 
-                event.amount().compareTo(BigDecimal.ZERO) >= 0) {
-                // Ignore positive (credits/income) or malformed payload. Budgets track negative (spend).
-                // Assuming amount is positive for income, negative for expense as designed in transaction service.
+            // Skip events with missing essential data
+            if (event.amount() == null || event.ownerEmail() == null || event.monthYear() == null) {
+                log.warn("Skipping event with missing data: txnId={}", event.transactionId());
                 return;
             }
 
-            // The amount is negative for expense. We want current_spend as a positive magnitude.
+            // Skip income/credit transactions (negative amounts) and "Uncategorized" - we only track spending
+            if (event.amount().compareTo(BigDecimal.ZERO) <= 0) {
+                log.debug("Skipping non-debit transaction amount={}", event.amount());
+                return;
+            }
+
+            if ("Uncategorized".equalsIgnoreCase(event.categoryName())) {
+                log.debug("Skipping uncategorized transaction {}", event.transactionId());
+                return;
+            }
+
+            // Amount from ML service is positive for DEBIT - this is the spend magnitude
             BigDecimal spendMagnitude = event.amount().abs();
 
-            // 1. Try to find an existing budget for this category 
-            // In the real world, categoryId is robust, here we match on Name if ID isn't set, 
-            // but the request is categoryName. We'll find by name since ML only produces Name!
-            // Wait, we need a method to find by CategoryName or ID. Let's just lookup by name.
-            
-            // Note: Since we don't have categoryId from ML, we'll iterate or write a custom query.
-            // For now, let's just find all user budgets for the month and filter.
-            Optional<Budget> matchedBudget = budgetRepository.findByOwnerEmailAndMonthYear(event.ownerEmail(), event.monthYear())
-                .stream()
-                .filter(b -> b.getCategoryName().equalsIgnoreCase(event.categoryName()))
-                .findFirst();
+            // Find matching budget for this user/category/month
+            Optional<Budget> matchedBudget = budgetRepository
+                    .findByOwnerEmailAndMonthYear(event.ownerEmail(), event.monthYear())
+                    .stream()
+                    .filter(b -> b.getCategoryName().equalsIgnoreCase(event.categoryName()))
+                    .findFirst();
 
             if (matchedBudget.isEmpty()) {
-                log.debug("No budget found for category {}", event.categoryName());
+                log.debug("No budget found for category '{}' user={} month={}",
+                        event.categoryName(), event.ownerEmail(), event.monthYear());
                 return;
             }
 
             Budget budget = matchedBudget.get();
             BigDecimal previousSpend = budget.getCurrentSpend();
             budget.addSpend(spendMagnitude);
-            
+
             BigDecimal limit = budget.getLimitAmount();
             BigDecimal newSpend = budget.getCurrentSpend();
-            
+
             budgetRepository.save(budget);
-            
-            // Check 90% threshold for alerting
+            log.info("Updated budget '{}' for {}: spend {} -> {} (limit {})",
+                    event.categoryName(), event.ownerEmail(), previousSpend, newSpend, limit);
+
+            // Alert on 90% threshold breach (first time crossing)
             BigDecimal threshold = limit.multiply(new BigDecimal("0.90"));
             if (previousSpend.compareTo(threshold) < 0 && newSpend.compareTo(threshold) >= 0) {
-                log.info("ALERT: Budget threshold breached for {} (Limit: {}, Spend: {})", event.categoryName(), limit, newSpend);
-                
-                String alertPayload = String.format("{\"ownerEmail\":\"%s\", \"categoryName\":\"%s\", \"limitAmount\":%s, \"currentSpend\":%s, \"type\":\"BUDGET_WARNING\"}",
+                log.info("ALERT: Budget threshold 90% breached for {} (Limit: {}, Spend: {})",
+                        event.categoryName(), limit, newSpend);
+                String alertPayload = String.format(
+                        "{\"ownerEmail\":\"%s\",\"categoryName\":\"%s\",\"limitAmount\":%s,\"currentSpend\":%s,\"type\":\"BUDGET_WARNING\"}",
                         event.ownerEmail(), event.categoryName(), limit, newSpend);
-                        
                 kafkaTemplate.send("budget.alerts", event.ownerEmail(), alertPayload);
             } else if (previousSpend.compareTo(limit) < 0 && newSpend.compareTo(limit) >= 0) {
-                log.info("ALERT: Budget EXCEEDED for {} (Limit: {}, Spend: {})", event.categoryName(), limit, newSpend);
-                
-                String alertPayload = String.format("{\"ownerEmail\":\"%s\", \"categoryName\":\"%s\", \"limitAmount\":%s, \"currentSpend\":%s, \"type\":\"BUDGET_EXCEEDED\"}",
+                log.info("ALERT: Budget EXCEEDED for {} (Limit: {}, Spend: {})",
+                        event.categoryName(), limit, newSpend);
+                String alertPayload = String.format(
+                        "{\"ownerEmail\":\"%s\",\"categoryName\":\"%s\",\"limitAmount\":%s,\"currentSpend\":%s,\"type\":\"BUDGET_EXCEEDED\"}",
                         event.ownerEmail(), event.categoryName(), limit, newSpend);
-                        
                 kafkaTemplate.send("budget.alerts", event.ownerEmail(), alertPayload);
             }
 

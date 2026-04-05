@@ -38,4 +38,14 @@ public class BudgetController {
         BudgetResponse response = budgetService.upsertBudget(ownerEmail, request);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBudget(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") java.util.UUID id) {
+        
+        String ownerEmail = jwt.getSubject();
+        budgetService.deleteBudget(ownerEmail, id);
+        return ResponseEntity.noContent().build();
+    }
 }

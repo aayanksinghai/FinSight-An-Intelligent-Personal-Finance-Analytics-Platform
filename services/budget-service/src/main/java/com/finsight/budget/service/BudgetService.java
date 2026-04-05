@@ -52,4 +52,14 @@ public class BudgetService {
         
         return new BudgetResponse(budgetRepository.save(budget));
     }
+
+    @Transactional
+    public void deleteBudget(String ownerEmail, java.util.UUID id) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Budget not found: " + id));
+        if (!budget.getOwnerEmail().equals(ownerEmail)) {
+            throw new RuntimeException("Not authorized to delete this budget");
+        }
+        budgetRepository.deleteById(id);
+    }
 }
