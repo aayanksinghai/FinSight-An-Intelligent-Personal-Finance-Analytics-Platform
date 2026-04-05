@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: finsight
+      POSTGRES_PASSWORD: finsight
+      POSTGRES_DB: finsight_user
+    ports:
+      - "5432:5432"
+
+  api-gateway:
+    build:
+      context: ./services/api-gateway-service
+    ports:
+      - "8090:8090"
+    depends_on:
+      - user-service
+      - transaction-service
+      - budget-service
+      - ingestion-service
+      - notification-service
+
+  user-service:
+    build:
+      context: ./services/user-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  transaction-service:
+    build:
+      context: ./services/transaction-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  budget-service:
+    build:
+      context: ./services/budget-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  ingestion-service:
+    build:
+      context: ./services/ingestion-service
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+      - api-gateway
+
+  admin-service:
+    build:
+      context: ./services/admin-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+
+  categorization-service:
+    build:
+      context: ./services/categorization-service
+    environment:
+      KAFKA_BROKER: kafka:9092
+    depends_on:
+      - kafka
+
+  anomaly-detection-service:
+    build:
+      context: ./services/anomaly-detection-service
+    environment:
+      KAFKA_BROKER: kafka:9092
+    depends_on:
+      - kafka
+
+  chat-service:
+    build:
+      context: ./services/chat-service
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-gateway

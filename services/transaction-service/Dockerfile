@@ -1,22 +1,13 @@
-FROM eclipse-temurin:21-jre-alpine AS runtime
-
+FROM maven:3.9-amazoncorretto-21 AS builder
 WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-COPY target/transaction-service-*.jar app.jar
-
-RUN chown appuser:appgroup app.jar
-
-USER appuser
-
+# Run stage
+FROM amazoncorretto:21-alpine
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8083
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD wget -qO- http://localhost:8083/actuator/health || exit 1
-
-ENTRYPOINT ["java", \
-  "-Djava.security.egd=file:/dev/./urandom", \
-  "-XX:+UseContainerSupport", \
-  "-XX:MaxRAMPercentage=75.0", \
-  "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

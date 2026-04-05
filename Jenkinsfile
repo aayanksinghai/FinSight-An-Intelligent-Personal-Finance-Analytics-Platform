@@ -28,6 +28,15 @@ pipeline {
             }
         }
 
+        stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
+        }
+
         stage('Test') {
             when {
                 expression { return params.RUN_TESTS }
@@ -40,6 +49,12 @@ pipeline {
         stage('Archive Artifacts') {
             steps {
                 archiveArtifacts artifacts: 'services/*/target/*.jar', fingerprint: true, allowEmptyArchive: true
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh 'docker-compose build'
             }
         }
     }
