@@ -38,7 +38,7 @@ services:
       - "5432:5432"
 
   api-gateway:
-    image: aayanksinghai/finsight-api-gateway-service:latest
+    image: aayanksinghai/finsight-api-gateway:latest
     build:
       context: ./services/api-gateway-service
     ports:

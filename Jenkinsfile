@@ -70,8 +70,7 @@ pipeline {
                     docker.withRegistry('', 'DockerHubCred') {
                         services.each { service ->
                             def imageName = "aayanksinghai/finsight-${service}"
-                            // Tag and push latest
-                            sh "docker tag ${imageName}:latest ${imageName}:latest"
+                            // Push latest (already built by docker-compose)
                             sh "docker push ${imageName}:latest"
                             // Tag and push build number
                             sh "docker tag ${imageName}:latest ${imageName}:${env.BUILD_NUMBER}"
