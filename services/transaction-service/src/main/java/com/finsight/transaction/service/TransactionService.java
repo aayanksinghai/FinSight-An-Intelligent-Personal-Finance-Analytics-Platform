@@ -27,13 +27,23 @@ public class TransactionService {
     }
 
     public Page<TransactionResponse> list(String ownerEmail, Instant from, Instant to, String category, String type, int page, int size) {
-        // Since we are building an MVP, we fetch everything ordered by date and paginate.
-        // More sophisticated Specification filtering goes here in later phases.
+        return list(ownerEmail, from, to, category, type, null, page, size);
+    }
+
+    public Page<TransactionResponse> list(String ownerEmail, Instant from, Instant to, String category, String type, String search, int page, int size) {
         int safeSize = Math.max(1, Math.min(size, 100));
-        Page<Transaction> txns = transactionRepository.findByOwnerEmailOrderByOccurredAtDesc(
-            ownerEmail, PageRequest.of(Math.max(page, 0), safeSize)
-        );
-        return txns.map(TransactionResponse::from);
+        PageRequest pageRequest = PageRequest.of(Math.max(page, 0), safeSize, Sort.by(Sort.Direction.DESC, "occurredAt"));
+
+        org.springframework.data.jpa.domain.Specification<com.finsight.transaction.domain.Transaction> spec =
+            org.springframework.data.jpa.domain.Specification
+                .where(com.finsight.transaction.persistence.TransactionSpecifications.ownedBy(ownerEmail))
+                .and(com.finsight.transaction.persistence.TransactionSpecifications.ofType(type))
+                .and(com.finsight.transaction.persistence.TransactionSpecifications.afterDate(from))
+                .and(com.finsight.transaction.persistence.TransactionSpecifications.beforeDate(to))
+                .and(com.finsight.transaction.persistence.TransactionSpecifications.inCategory(category))
+                .and(com.finsight.transaction.persistence.TransactionSpecifications.keywordSearch(search));
+
+        return transactionRepository.findAll(spec, pageRequest).map(TransactionResponse::from);
     }
 
     public TransactionResponse getById(String ownerEmail, UUID id) {

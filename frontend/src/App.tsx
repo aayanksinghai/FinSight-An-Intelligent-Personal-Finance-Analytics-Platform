@@ -9,6 +9,7 @@ import ProfilePage from './pages/ProfilePage';
 import AdminPage from './pages/AdminPage';
 import UploadPage from './pages/UploadPage';
 import BudgetPage from './pages/BudgetPage';
+import TransactionsPage from './pages/TransactionsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -62,6 +63,15 @@ export default function App() {
         element={
           <AppShell>
             <BudgetPage />
+          </AppShell>
+        }
+      />
+
+      <Route
+        path="/transactions"
+        element={
+          <AppShell>
+            <TransactionsPage />
           </AppShell>
         }
       />

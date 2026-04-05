@@ -30,9 +30,10 @@ public class TransactionController {
             @RequestParam(required = false) Instant to,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(transactionService.list(jwt.getSubject(), from, to, category, type, page, size));
+        return ResponseEntity.ok(transactionService.list(jwt.getSubject(), from, to, category, type, search, page, size));
     }
 
     @GetMapping("/{id}")
