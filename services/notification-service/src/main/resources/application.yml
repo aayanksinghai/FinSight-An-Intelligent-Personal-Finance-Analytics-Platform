@@ -21,6 +21,8 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    validate-on-migrate: false
+    repair-on-migrate: true
     table: flyway_schema_history_notification
 
 security:

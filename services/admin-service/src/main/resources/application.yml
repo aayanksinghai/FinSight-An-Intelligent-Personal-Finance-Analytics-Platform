@@ -2,8 +2,22 @@ spring:
   application:
     name: admin-service
 
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/finsight_user}
+    username: ${DB_USER:finsight}
+    password: ${DB_PASSWORD:finsight}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    repair-on-migrate: true
+    table: flyway_schema_history_admin
+
 server:
-  port: 8086
+  port: 8087
 
 management:
   endpoints:

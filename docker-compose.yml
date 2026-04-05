@@ -113,6 +113,8 @@ services:
     image: aayanksinghai/finsight-admin-service:latest
     build:
       context: ./services/admin-service
+    ports:
+      - "8087:8087"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
