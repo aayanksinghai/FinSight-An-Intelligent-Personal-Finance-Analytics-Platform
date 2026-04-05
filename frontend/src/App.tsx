@@ -13,9 +13,15 @@ import TransactionsPage from './pages/TransactionsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
+import { Toaster } from 'react-hot-toast';
+
 function AppShell({ children }: { children: ReactNode }) {
   return (
     <ProtectedRoute>
+      <Toaster position="top-right" toastOptions={{
+        className: '!bg-brand-dark !text-white !border !border-white/10 !shadow-2xl',
+        duration: 5000,
+      }} />
       <Layout>{children}</Layout>
     </ProtectedRoute>
   );

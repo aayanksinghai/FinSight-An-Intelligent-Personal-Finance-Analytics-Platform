@@ -8,6 +8,20 @@ spring:
       auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/finsight_user}
+    username: ${DB_USER:finsight}
+    password: ${DB_PASSWORD:finsight}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    table: flyway_schema_history_notification
 
 security:
   jwt:
@@ -24,7 +38,7 @@ security:
       -----END PUBLIC KEY-----
 
 server:
-  port: 8085
+  port: 8086
 
 management:
   endpoints:

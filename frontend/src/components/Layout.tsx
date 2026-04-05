@@ -2,8 +2,22 @@ import type { ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { logout } from '../api/authApi';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getNotifications, markAsRead, markAllAsRead, type Notification } from '../api/notificationApi';
+import { useStompClient } from '../hooks/useStompClient';
+import toast from 'react-hot-toast';
 
 // ─── Nav icons (inline SVGs — no icon package needed) ───────────────────────
+
+function IconBell() {
+  return (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+  );
+}
 
 function IconDashboard() {
   return (
@@ -68,6 +82,127 @@ function IconTransactions() {
   );
 }
 
+// ─── Notification Dropdown Component ────────────────────────────────────────
+
+function NotificationInbox() {
+  const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: getNotifications,
+  });
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Setup WebSocket Listener
+  useStompClient((notif) => {
+    // Show Toast
+    if (notif.type.includes('EXCEEDED') || notif.type.includes('ANOMALY')) {
+      toast.error(notif.message);
+    } else {
+      toast(notif.message, { icon: '⚠️' });
+    }
+    
+    // Update Inbox Query dynamically
+    queryClient.setQueryData<Notification[]>(['notifications'], (prev) => {
+      if (!prev) return [notif];
+      return [notif, ...prev];
+    });
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: (id: string) => markAsRead(id),
+    onSuccess: (_, id) => {
+      queryClient.setQueryData<Notification[]>(['notifications'], (prev) =>
+        (prev || []).map(n => n.id === id ? { ...n, read: true } : n)
+      );
+    }
+  });
+
+  const markAllMutation = useMutation({
+    mutationFn: markAllAsRead,
+    onSuccess: () => {
+      queryClient.setQueryData<Notification[]>(['notifications'], (prev) =>
+        (prev || []).map(n => ({ ...n, read: true }))
+      );
+    }
+  });
+
+  function getIconForType(type: string) {
+    if (type.includes('ANOMALY')) return '🚨';
+    if (type.includes('EXCEEDED')) return '🛑';
+    if (type.includes('WARNING')) return '⚠️';
+    return '🔔';
+  }
+
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="relative p-2 rounded-full hover:bg-white/5 transition-colors text-muted hover:text-white"
+        title="Notifications"
+      >
+        <IconBell />
+        {unreadCount > 0 && (
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+        )}
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto glass-card z-50 p-0 flex flex-col shadow-2xl border border-white/10 origin-top-right animate-scale-in">
+            <div className="p-3 border-b border-white/5 flex justify-between items-center sticky top-0 bg-brand-dark/95 backdrop-blur-md">
+              <h3 className="font-semibold text-[#edf2ff] text-sm">Notifications</h3>
+              {unreadCount > 0 && (
+                <button 
+                  onClick={() => markAllMutation.mutate()}
+                  className="text-[11px] text-brand hover:text-brand-light"
+                >
+                  Mark all as read
+                </button>
+              )}
+            </div>
+
+            {notifications.length === 0 ? (
+              <div className="p-8 text-center text-muted text-xs">
+                No notifications yet.
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                {notifications.map(n => (
+                  <div 
+                    key={n.id} 
+                    className={`p-3 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors cursor-pointer flex gap-3 ${!n.read ? 'bg-white/[0.04]' : ''}`}
+                    onClick={() => {
+                      if (!n.read) markReadMutation.mutate(n.id);
+                    }}
+                  >
+                    <div className="text-xl mt-0.5">{getIconForType(n.type)}</div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-xs ${!n.read ? 'text-[#edf2ff] font-medium' : 'text-muted'}`}>
+                        {n.message}
+                      </p>
+                      <p className="text-[10px] text-muted mt-1 opacity-70">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    {!n.read && (
+                      <div className="flex-shrink-0 mt-1">
+                        <div className="h-1.5 w-1.5 rounded-full bg-brand" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 interface LayoutProps {
   children: ReactNode;
@@ -204,8 +339,16 @@ export default function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* ── Main content ── */}
-      <main className="min-w-0 flex-1 p-4 animate-fade-in">
-        {children}
+      <main className="min-w-0 flex-1 flex flex-col h-screen">
+        {/* Top Header with Inbox */}
+        <header className="sticky top-0 z-30 flex items-center justify-end px-6 py-4 bg-brand-dark/50 backdrop-blur-xl border-b border-white/5">
+          <NotificationInbox />
+        </header>
+
+        {/* Scrollable Content */}
+        <div className="p-6 overflow-y-auto flex-1 pb-32">
+          {children}
+        </div>
       </main>
     </div>
   );

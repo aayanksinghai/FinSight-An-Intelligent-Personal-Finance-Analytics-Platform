@@ -26,6 +26,14 @@ spring:
           uri: http://localhost:8084
           predicates:
             - Path=/api/budgets/**
+        - id: notification-service-route
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/notifications/**
+        - id: notification-ws-route
+          uri: http://localhost:8086
+          predicates:
+            - Path=/ws/**
 
 security:
   jwt:
