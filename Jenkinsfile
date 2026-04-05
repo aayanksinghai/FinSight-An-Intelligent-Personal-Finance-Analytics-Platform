@@ -61,8 +61,22 @@ pipeline {
         stage('Push Docker Images to Docker Hub') {
             steps {
                 script {
+                    def services = [
+                        'api-gateway', 'user-service', 'transaction-service', 
+                        'budget-service', 'ingestion-service', 'notification-service', 
+                        'admin-service', 'categorization-service', 'anomaly-detection-service', 
+                        'chat-service', 'frontend'
+                    ]
                     docker.withRegistry('', 'DockerHubCred') {
-                        sh 'docker-compose push'
+                        services.each { service ->
+                            def imageName = "aayanksinghai/finsight-${service}"
+                            // Tag and push latest
+                            sh "docker tag ${imageName}:latest ${imageName}:latest"
+                            sh "docker push ${imageName}:latest"
+                            // Tag and push build number
+                            sh "docker tag ${imageName}:latest ${imageName}:${env.BUILD_NUMBER}"
+                            sh "docker push ${imageName}:${env.BUILD_NUMBER}"
+                        }
                     }
                 }
             }
