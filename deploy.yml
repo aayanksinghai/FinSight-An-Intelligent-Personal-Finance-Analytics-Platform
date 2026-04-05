@@ -2,6 +2,13 @@
 - name: Deploy FinSight Application
   hosts: production
   tasks:
+    - name: Stop conflicting host processes (Clear ports)
+      shell: |
+        for port in 5432 9092 6379 8090 5173 8081 8082 8083 8084 8086 8087 8089; do
+          lsof -t -i :$port | xargs kill -9 || true
+        done
+      ignore_errors: yes
+
     - name: Pull latest Docker images from Docker Hub
       command: docker-compose pull
       args:
