@@ -2,19 +2,11 @@
 - name: Deploy FinSight Application
   hosts: production
   tasks:
-    - name: Aggressive Cleanup (Clear containers and ports)
-      shell: |
-        # 1. Stop and remove existing containers for this project
-        docker-compose down -v || true
-        # 2. Stop any other containers using our ports (forceful)
-        docker ps -q --filter "publish=5432" | xargs -r docker stop || true
-        docker ps -q --filter "publish=9092" | xargs -r docker stop || true
-        docker ps -q --filter "publish=5173" | xargs -r docker stop || true
-        # 3. Kill any remaining java/node processes on host ports
-        for port in 5432 9092 6379 8090 5173 8081 8082 8083 8084 8086 8087 8089; do
-          fuser -k ${port}/tcp || true
-        done
+    - name: Cleanup existing containers
+      command: docker-compose down -v
       ignore_errors: yes
+      args:
+        chdir: "{{ playbook_dir }}"
 
     - name: Pull latest Docker images from Docker Hub
       command: docker-compose pull

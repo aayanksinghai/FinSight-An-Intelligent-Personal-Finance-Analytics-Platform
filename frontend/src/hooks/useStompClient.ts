@@ -17,7 +17,7 @@ export function useStompClient(onNotification?: (notification: Notification) => 
 
     const client = new Client({
       // We use SockJS over the API Gateway proxy
-      webSocketFactory: () => new SockJS('http://localhost:8090/ws'),
+      webSocketFactory: () => new SockJS('http://localhost:8095/ws'),
       connectHeaders: {
         Authorization: `Bearer ${tokens.accessToken}`,
       },

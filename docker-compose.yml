@@ -5,14 +5,14 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - "2185:2181"
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "9095:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -26,7 +26,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6385:6379"
 
   postgres:
     image: postgres:16-alpine
@@ -35,14 +35,14 @@ services:
       POSTGRES_PASSWORD: finsight
       POSTGRES_DB: finsight_user
     ports:
-      - "5432:5432"
+      - "5435:5432"
 
   api-gateway:
     image: aayanksinghai/finsight-api-gateway:latest
     build:
       context: ./services/api-gateway-service
     ports:
-      - "8090:8090"
+      - "8095:8090"
     depends_on:
       - user-service
       - transaction-service
@@ -152,6 +152,6 @@ services:
     build:
       context: ./frontend
     ports:
-      - "5173:80"
+      - "5175:80"
     depends_on:
       - api-gateway

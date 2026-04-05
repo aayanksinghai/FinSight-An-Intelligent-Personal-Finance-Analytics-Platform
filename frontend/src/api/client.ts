@@ -2,7 +2,7 @@ import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { clearStoredTokens, getStoredTokens, setStoredTokens } from '../store/tokenStore';
 import type { AuthTokenResponse } from '../types/api';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8090';
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8095';
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,
