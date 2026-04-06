@@ -60,6 +60,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
+      SPRING_FLYWAY_TABLE: "flyway_schema_history_user"
     depends_on:
       - postgres
       - redis
@@ -73,6 +74,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
       SPRING_DATA_REDIS_HOST: redis
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
+      SPRING_FLYWAY_TABLE: "flyway_schema_history_transaction"
     depends_on:
       - postgres
       - redis
@@ -86,6 +90,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
       SPRING_DATA_REDIS_HOST: redis
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
+      SPRING_FLYWAY_TABLE: "flyway_schema_history_budget"
     depends_on:
       - postgres
       - redis
@@ -154,6 +161,9 @@ services:
       context: ./services/chat-service
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
+      SPRING_FLYWAY_TABLE: "flyway_schema_history_chat"
     depends_on:
       - kafka
 
