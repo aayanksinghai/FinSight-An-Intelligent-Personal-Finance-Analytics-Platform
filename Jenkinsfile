@@ -24,7 +24,17 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn -B -ntp clean package spring-boot:repackage -DskipTests'
+                sh '''
+                    # Patch API Gateway routes to use Docker service names instead of localhost
+                    sed -i "s|http://localhost:8081|http://user-service:8081|g" services/api-gateway-service/src/main/resources/application.yml
+                    sed -i "s|http://localhost:8082|http://ingestion-service:8082|g" services/api-gateway-service/src/main/resources/application.yml
+                    sed -i "s|http://localhost:8083|http://transaction-service:8083|g" services/api-gateway-service/src/main/resources/application.yml
+                    sed -i "s|http://localhost:8084|http://budget-service:8084|g" services/api-gateway-service/src/main/resources/application.yml
+                    sed -i "s|http://localhost:8086|http://notification-service:8086|g" services/api-gateway-service/src/main/resources/application.yml
+                    
+                    # Run the build
+                    mvn -B -ntp clean package spring-boot:repackage -DskipTests
+                '''
             }
         }
 
@@ -70,14 +80,17 @@ pipeline {
                     docker.withRegistry('', 'DockerHubCred') {
                         services.each { service ->
                             def imageName = "aayanksinghai/finsight-${service}"
-                            // Push latest (already built by docker-compose)
+                            // Push only the latest tag
                             sh "docker push ${imageName}:latest"
-                            // Tag and push build number
-                            sh "docker tag ${imageName}:latest ${imageName}:${env.BUILD_NUMBER}"
-                            sh "docker push ${imageName}:${env.BUILD_NUMBER}"
                         }
                     }
                 }
+            }
+        }
+
+        stage('Cleanup Local Images') {
+            steps {
+                sh 'docker image prune -f'
             }
         }
 
