@@ -6,6 +6,9 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2185:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -13,6 +16,8 @@ services:
       - zookeeper
     ports:
       - "9095:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -27,6 +32,8 @@ services:
     image: redis:7-alpine
     ports:
       - "6385:6379"
+    volumes:
+      - redis_data:/data
 
   postgres:
     image: postgres:15-alpine
@@ -36,11 +43,15 @@ services:
       POSTGRES_DB: finsight_user
     ports:
       - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   mongodb:
     image: mongo:7.0
     ports:
       - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
 
   api-gateway:
     image: aayanksinghai/finsight-api-gateway:latest
@@ -200,3 +211,11 @@ services:
       - "5175:80"
     depends_on:
       - api-gateway
+
+volumes:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
+  redis_data:
+  postgres_data:
+  mongodb_data:
