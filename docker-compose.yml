@@ -37,6 +37,11 @@ services:
     ports:
       - "5435:5432"
 
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27018:27017"
+
   api-gateway:
     image: aayanksinghai/finsight-api-gateway:latest
     build:
@@ -113,8 +118,10 @@ services:
       context: ./services/ingestion-service
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATA_MONGODB_URI: "mongodb://mongodb:27017/finsight_ingestion"
     depends_on:
       - kafka
+      - mongodb
 
   notification-service:
     image: aayanksinghai/finsight-notification-service:latest
