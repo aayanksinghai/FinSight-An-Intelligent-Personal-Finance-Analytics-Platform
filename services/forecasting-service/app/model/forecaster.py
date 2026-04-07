@@ -22,11 +22,12 @@ def get_forecast(db: Session, email: str, month_year: str) -> List[Dict[str, Any
     # We need historical data. We pull up to 12 months before the target_dt.
     # Exclude the exact target month from history training to avoid data leakage if mid-month.
     query = text("""
-        SELECT amount, transaction_date at time zone 'UTC' as tx_date, category 
-        FROM transaction_schema.transactions 
-        WHERE owner_email = :email 
-        AND type = 'DEBIT' 
-        AND transaction_date < :target_month_end
+        SELECT t.amount, t.occurred_at at time zone 'UTC' as tx_date, c.name as category 
+        FROM transactions t
+        JOIN categories c ON t.category_id = c.id
+        WHERE t.owner_email = :email 
+        AND t.type = 'DEBIT' 
+        AND t.occurred_at < :target_month_end
     """)
     # target_month_end is the 1st of the target_dt month to ensure we get history strictly before it
     target_month_start = f"{target_dt.year}-{target_dt.month:02d}-01"
@@ -53,12 +54,13 @@ def get_forecast(db: Session, email: str, month_year: str) -> List[Dict[str, Any
     actuals_so_far = {}
     if is_current_month:
         mid_query = text("""
-            SELECT category, SUM(amount) as current_spend
-            FROM transaction_schema.transactions 
-            WHERE owner_email = :email 
-            AND type = 'DEBIT' 
-            AND transaction_date >= :month_start
-            GROUP BY category
+            SELECT c.name as category, SUM(t.amount) as current_spend
+            FROM transactions t
+            JOIN categories c ON t.category_id = c.id
+            WHERE t.owner_email = :email 
+            AND t.type = 'DEBIT' 
+            AND t.occurred_at >= :month_start
+            GROUP BY c.name
         """)
         m_df = pd.read_sql(mid_query, db.bind, params={"email": email, "month_start": target_month_start})
         for _, row in m_df.iterrows():
