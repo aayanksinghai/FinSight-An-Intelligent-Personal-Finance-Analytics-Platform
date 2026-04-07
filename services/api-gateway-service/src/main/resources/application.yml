@@ -34,6 +34,10 @@ spring:
           uri: http://localhost:8086
           predicates:
             - Path=/ws/**
+        - id: chat-service-route
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/chat/**
 
 security:
   jwt:

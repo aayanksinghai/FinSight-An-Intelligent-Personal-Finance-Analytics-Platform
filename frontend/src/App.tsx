@@ -10,6 +10,7 @@ import AdminPage from './pages/AdminPage';
 import UploadPage from './pages/UploadPage';
 import BudgetPage from './pages/BudgetPage';
 import TransactionsPage from './pages/TransactionsPage';
+import ChatPage from './pages/ChatPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -78,6 +79,15 @@ export default function App() {
         element={
           <AppShell>
             <TransactionsPage />
+          </AppShell>
+        }
+      />
+
+      <Route
+        path="/chat"
+        element={
+          <AppShell>
+            <ChatPage />
           </AppShell>
         }
       />

@@ -31,6 +31,7 @@ pipeline {
                     sed -i "s|http://localhost:8083|http://transaction-service:8083|g" services/api-gateway-service/src/main/resources/application.yml
                     sed -i "s|http://localhost:8084|http://budget-service:8084|g" services/api-gateway-service/src/main/resources/application.yml
                     sed -i "s|http://localhost:8086|http://notification-service:8086|g" services/api-gateway-service/src/main/resources/application.yml
+                    sed -i "s|http://localhost:8087|http://chat-service:8087|g" services/api-gateway-service/src/main/resources/application.yml
                     
                     # Run the build
                     mvn -B -ntp clean package spring-boot:repackage -DskipTests

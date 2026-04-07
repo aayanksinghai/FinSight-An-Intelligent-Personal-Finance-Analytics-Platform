@@ -1,6 +1,48 @@
 spring:
   application:
     name: chat-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/finsight_user}
+    username: ${DB_USER:finsight}
+    password: ${DB_PASSWORD:finsight}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    repair-on-migrate: true
+    baseline-version: "0"
+    table: flyway_schema_history_chat
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: 6379
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+security:
+  jwt:
+    issuer: finsight-user-service
+    public-key: |
+      -----BEGIN PUBLIC KEY-----
+      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7FXQCJeeUm/la84gPQ
+      vZV91fsWbhe/URGkzjKDTV/t0H1hbYeD/tJlqJMnRcmHhi6gbJiPULj4siffH0+u
+      tZd3XOS9xOa8Ujuxc1DPLWAt3wgmI/IYqPmuhalikNNsAwUR2T/9DHnFmpl/PXlT
+      9aFVDsWyG0iN8Kb3F825r0wI5UGiad+OM50rCT7IjD9RTquCtM5LaeX6I2aJzIN+
+      Ol92y/UmMAZFmknzeJ+37rLfQtURz+CF1HsOlQMcqAGuvHWdNpabwF/B39XlK59l
+      WOAXlPyozGH10AIzWHvhiKKo9qssXDftthpjqZKD2DQNQUUDcaeYOMD6aacfdIcn
+      PQIDAQAB
+      -----END PUBLIC KEY-----
+
+services:
+  transaction-service-url: ${TRANSACTION_SERVICE_URL:http://localhost:8083}
+  budget-service-url: ${BUDGET_SERVICE_URL:http://localhost:8084}
+  notification-service-url: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
 
 server:
   port: 8087
@@ -14,4 +56,3 @@ management:
     health:
       probes:
         enabled: true
-
