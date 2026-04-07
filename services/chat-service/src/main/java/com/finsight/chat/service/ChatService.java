@@ -1,6 +1,7 @@
 package com.finsight.chat.service;
 
 import com.finsight.chat.client.BudgetClient;
+import com.finsight.chat.client.GeminiClient;
 import com.finsight.chat.client.TransactionClient;
 import com.finsight.chat.domain.ChatMessage;
 import com.finsight.chat.domain.ChatRating;
@@ -14,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,9 +22,40 @@ import java.util.stream.Collectors;
 @Service
 public class ChatService {
 
+    // ── System prompt given to Gemini (RAG system prompt) ────────────────────
+    private static final String SYSTEM_PROMPT = """
+        You are a smart, friendly, and conversational AI Financial Assistant called "FinSight AI".
+        
+        Your goal is to help users understand their finances in a natural, human-like way — not like a dashboard or report.
+        
+        Guidelines:
+        - Always respond conversationally, like a helpful friend who happens to be great with money.
+        - Interpret the financial data and explain what it means for the user, don't just report numbers.
+        - Add helpful suggestions or observations when relevant.
+        - Keep responses concise (2-4 sentences usually), but meaningful.
+        - Use a warm, encouraging, and supportive tone.
+        - When something is good, celebrate it. When something needs attention, explain clearly + suggest a fix.
+        - Use emojis sparingly to add warmth (1-2 per response max).
+        - Format numbers with ₹ and commas for readability.
+        - Answer the user's actual question directly before adding extra insight.
+        
+        Style Rules:
+        - ❌ Do NOT say: "Food & Dining: ₹0 / ₹50 (0%) OK"
+        - ✅ DO say: "You're well within your Food & Dining budget — you haven't spent anything there yet this month!"
+        - ❌ Do NOT list data robotically.
+        - ✅ DO interpret what the numbers mean for the user.
+        - ❌ Do NOT give the same answer regardless of how a question is phrased.
+        - ✅ DO tailor your response to the specific wording and focus of the query.
+        
+        If you don't have enough data to answer accurately, say so honestly and suggest what the user should do (e.g., upload a bank statement).
+        
+        Keep your response under 200 words unless the question genuinely requires more detail.
+        """;
+
     private final IntentClassifier intentClassifier;
     private final TransactionClient transactionClient;
     private final BudgetClient budgetClient;
+    private final GeminiClient geminiClient;
     private final ChatSessionRepository sessionRepo;
     private final ChatMessageRepository messageRepo;
     private final ChatRatingRepository ratingRepo;
@@ -33,12 +63,14 @@ public class ChatService {
     public ChatService(IntentClassifier intentClassifier,
                        TransactionClient transactionClient,
                        BudgetClient budgetClient,
+                       GeminiClient geminiClient,
                        ChatSessionRepository sessionRepo,
                        ChatMessageRepository messageRepo,
                        ChatRatingRepository ratingRepo) {
         this.intentClassifier = intentClassifier;
         this.transactionClient = transactionClient;
         this.budgetClient = budgetClient;
+        this.geminiClient = geminiClient;
         this.sessionRepo = sessionRepo;
         this.messageRepo = messageRepo;
         this.ratingRepo = ratingRepo;
@@ -56,10 +88,13 @@ public class ChatService {
         // 3. Classify intent
         ChatIntent intent = intentClassifier.classify(request.content());
 
-        // 4. Generate data-grounded response
-        String responseText = generateResponse(intent, request.content(), bearerToken, ownerEmail);
+        // 4. Fetch relevant financial data for this intent
+        String dataContext = fetchDataContext(intent, request.content(), bearerToken);
 
-        // 5. Persist assistant message
+        // 5. Generate natural-language response via Gemini (RAG)
+        String responseText = generateWithGemini(request.content(), dataContext, intent);
+
+        // 6. Persist assistant message
         ChatMessage assistantMsg = new ChatMessage(session.getId(), "ASSISTANT", responseText, intent.name());
         messageRepo.save(assistantMsg);
 
@@ -109,8 +144,161 @@ public class ChatService {
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Private helpers
+    // RAG Pipeline: Intent → Data → Prompt → LLM
     // ──────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Fetches the relevant financial data for the given intent and formats it
+     * as a structured plain-text context block for the LLM.
+     */
+    private String fetchDataContext(ChatIntent intent, String query, String bearerToken) {
+        StringBuilder ctx = new StringBuilder();
+        ctx.append("Current month: ").append(java.time.YearMonth.now()).append("\n");
+        ctx.append("Detected intent: ").append(intent.name()).append("\n\n");
+
+        try {
+            switch (intent) {
+                case SPENDING_SUMMARY, CATEGORY_COMPARISON, FORECAST_INQUIRY -> {
+                    Instant to = Instant.now();
+                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    appendSummaryContext(ctx, bearerToken, from, to);
+                    appendCategoryContext(ctx, bearerToken, from, to);
+                }
+                case BUDGET_STATUS -> {
+                    appendBudgetContext(ctx, bearerToken);
+                    // Also get spending for comparison
+                    Instant to = Instant.now();
+                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    appendCategoryContext(ctx, bearerToken, from, to);
+                }
+                case WHAT_IF -> {
+                    Instant to = Instant.now();
+                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    appendSummaryContext(ctx, bearerToken, from, to);
+                    appendCategoryContext(ctx, bearerToken, from, to);
+                    // Extract percentage from query if present
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)\\s*%").matcher(query);
+                    double pct = m.find() ? Double.parseDouble(m.group(1)) : 20;
+                    ctx.append("User wants a what-if scenario with ").append(pct).append("% reduction.\n");
+                }
+                case ANOMALY_EXPLANATION -> {
+                    ctx.append("The user is asking about anomaly detection alerts.\n");
+                    ctx.append("Anomaly detection is active and monitors for unusual transaction patterns.\n");
+                    ctx.append("Users can view active alerts in the notification inbox (bell icon).\n");
+                }
+                default -> {
+                    // For UNKNOWN, try to get basic summary anyway
+                    Instant to = Instant.now();
+                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    appendSummaryContext(ctx, bearerToken, from, to);
+                }
+            }
+        } catch (Exception e) {
+            ctx.append("Note: Could not fetch live financial data (").append(e.getMessage()).append(")\n");
+            ctx.append("Advise the user to check their connection or upload a bank statement.\n");
+        }
+
+        return ctx.toString();
+    }
+
+    private void appendSummaryContext(StringBuilder ctx, String bearerToken, Instant from, Instant to) {
+        List<Map<String, Object>> summary = transactionClient.getSummary(bearerToken, from, to);
+        if (summary == null || summary.isEmpty()) {
+            ctx.append("No transaction summary available for this period.\n");
+            return;
+        }
+        ctx.append("Transaction summary (last 30 days):\n");
+        double totalDebit = 0, totalCredit = 0;
+        for (Map<String, Object> row : summary) {
+            String type = String.valueOf(row.getOrDefault("type", ""));
+            double amount = toDouble(row.get("totalAmount"));
+            long count = toLong(row.get("transactionCount"));
+            if ("DEBIT".equalsIgnoreCase(type)) totalDebit = amount;
+            if ("CREDIT".equalsIgnoreCase(type)) totalCredit = amount;
+            ctx.append("- ").append(type).append(": ₹").append(String.format("%.2f", amount))
+               .append(" across ").append(count).append(" transactions\n");
+        }
+        double net = totalCredit - totalDebit;
+        ctx.append("- Net cash flow: ₹").append(String.format("%.2f", net)).append(net >= 0 ? " (positive)\n" : " (negative — spent more than earned)\n");
+    }
+
+    private void appendCategoryContext(StringBuilder ctx, String bearerToken, Instant from, Instant to) {
+        List<Map<String, Object>> cats = transactionClient.getCategories(bearerToken, from, to);
+        if (cats == null || cats.isEmpty()) {
+            ctx.append("No category breakdown available.\n");
+            return;
+        }
+        cats.sort((a, b) -> Double.compare(toDouble(b.get("totalAmount")), toDouble(a.get("totalAmount"))));
+        double total = cats.stream().mapToDouble(c -> toDouble(c.get("totalAmount"))).sum();
+        ctx.append("Spending by category (last 30 days, sorted by highest):\n");
+        for (Map<String, Object> cat : cats) {
+            String name = String.valueOf(cat.getOrDefault("category", "Other"));
+            double amt = toDouble(cat.get("totalAmount"));
+            double pct = total > 0 ? (amt / total * 100) : 0;
+            ctx.append("- ").append(name).append(": ₹").append(String.format("%.2f", amt))
+               .append(" (").append(String.format("%.1f", pct)).append("% of total spending)\n");
+        }
+    }
+
+    private void appendBudgetContext(StringBuilder ctx, String bearerToken) {
+        List<Map<String, Object>> budgets = budgetClient.getCurrentMonthBudgets(bearerToken);
+        if (budgets == null || budgets.isEmpty()) {
+            ctx.append("No budgets have been set for this month.\n");
+            return;
+        }
+        ctx.append("Budgets for this month:\n");
+        for (Map<String, Object> b : budgets) {
+            String cat = String.valueOf(b.getOrDefault("categoryName", "Unknown"));
+            double limit = toDouble(b.get("limitAmount"));
+            double spent = toDouble(b.get("spentAmount"));
+            double remaining = limit - spent;
+            double pct = limit > 0 ? (spent / limit * 100) : 0;
+            String status = pct >= 100 ? "OVER BUDGET" : pct >= 80 ? "WARNING (nearing limit)" : "within budget";
+            ctx.append("- ").append(cat).append(": spent ₹").append(String.format("%.2f", spent))
+               .append(" of ₹").append(String.format("%.2f", limit))
+               .append(" limit (").append(String.format("%.0f", pct)).append("%) — ").append(status)
+               .append(remaining >= 0 ? ", ₹" + String.format("%.2f", remaining) + " remaining\n"
+                                     : ", ₹" + String.format("%.2f", Math.abs(remaining)) + " over limit\n");
+        }
+    }
+
+    /**
+     * Calls Gemini with the assembled context prompt.
+     * If Gemini is unavailable (no API key), falls back to a friendly default message.
+     */
+    private String generateWithGemini(String userMessage, String dataContext, ChatIntent intent) {
+        String geminiResponse = geminiClient.generate(SYSTEM_PROMPT, userMessage, dataContext);
+        if (geminiResponse != null && !geminiResponse.isBlank()) {
+            return geminiResponse.trim();
+        }
+        // Graceful fallback: if no API key configured, return a helpful message
+        return fallbackResponse(intent, dataContext);
+    }
+
+    /**
+     * Fallback template when Gemini is not configured.
+     * More conversational than the old templates by reading data context as plain text.
+     */
+    private String fallbackResponse(ChatIntent intent, String dataContext) {
+        boolean hasData = !dataContext.contains("No transaction") && !dataContext.contains("No category") && !dataContext.contains("No budget");
+        return switch (intent) {
+            case SPENDING_SUMMARY -> hasData
+                ? "Here's a quick look at your finances for the last 30 days 📊\n\n" + dataContext + "\n💡 Tip: Set budgets in the Budgets page to track these figures more actively."
+                : "I don't see any transactions yet. Try uploading a bank statement first and I'll give you a full picture!";
+            case CATEGORY_COMPARISON -> hasData
+                ? "Here's how your spending breaks down by category 📂\n\n" + dataContext
+                : "No categorized spending yet. Upload a statement and the AI will automatically categorize your transactions!";
+            case BUDGET_STATUS -> hasData
+                ? "Here's your budget health for this month 📋\n\n" + dataContext
+                : "You haven't set any budgets yet. Head to the Budgets page to set category limits!";
+            case FORECAST_INQUIRY -> "Based on your recent patterns:\n\n" + dataContext + "\n\n💡 For more accurate forecasts, configure your Gemini API key.";
+            case ANOMALY_EXPLANATION -> "Your anomaly detection is active! 🚨 Check the notification bell (🔔) for any active alerts. The AI monitors for unusual transactions automatically.";
+            case WHAT_IF -> dataContext + "\n\n💡 Configure your Gemini API key for rich what-if scenario analysis!";
+            default -> "I can help with spending summaries, budgets, anomalies, forecasts and what-if scenarios! Try asking one of those. For richer AI responses, configure your Gemini API key.";
+        };
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private ChatSession resolveSession(String sessionIdStr, String ownerEmail) {
         if (sessionIdStr != null && !sessionIdStr.isBlank()) {
@@ -123,191 +311,15 @@ public class ChatService {
         return sessionRepo.save(new ChatSession(ownerEmail));
     }
 
-    private String generateResponse(ChatIntent intent, String query, String bearerToken, String ownerEmail) {
-        try {
-            return switch (intent) {
-                case SPENDING_SUMMARY    -> handleSpendingSummary(bearerToken);
-                case CATEGORY_COMPARISON -> handleCategoryComparison(bearerToken);
-                case ANOMALY_EXPLANATION -> handleAnomalyExplanation();
-                case FORECAST_INQUIRY    -> handleForecast(bearerToken);
-                case BUDGET_STATUS       -> handleBudgetStatus(bearerToken);
-                case WHAT_IF             -> handleWhatIf(query, bearerToken);
-                default                  -> handleUnknown();
-            };
-        } catch (Exception e) {
-            return "I'm sorry, I encountered an issue fetching your financial data. Please try again in a moment. (Error: " + e.getMessage() + ")";
-        }
-    }
-
-    // ── Intent Handlers ──────────────────────────────────────────────────────
-
-    private String handleSpendingSummary(String bearerToken) {
-        Instant to = Instant.now();
-        Instant from = to.minus(30, ChronoUnit.DAYS);
-        List<Map<String, Object>> summary = transactionClient.getSummary(bearerToken, from, to);
-
-        if (summary == null || summary.isEmpty()) {
-            return "📊 I couldn't find any transactions in the last 30 days. Try uploading a bank statement first.";
-        }
-
-        StringBuilder sb = new StringBuilder("📊 **Spending Summary — Last 30 Days**\n\n");
-        double totalDebit = 0, totalCredit = 0;
-        for (Map<String, Object> row : summary) {
-            String type = String.valueOf(row.getOrDefault("type", "UNKNOWN"));
-            double amount = toDouble(row.get("totalAmount"));
-            if ("DEBIT".equalsIgnoreCase(type)) { totalDebit = amount; sb.append("💸 **Total Spent:** ₹").append(String.format("%.2f", amount)).append("\n"); }
-            if ("CREDIT".equalsIgnoreCase(type)) { totalCredit = amount; sb.append("💰 **Total Income:** ₹").append(String.format("%.2f", amount)).append("\n"); }
-        }
-        double net = totalCredit - totalDebit;
-        sb.append("\n📈 **Net Cash Flow:** ₹").append(String.format("%.2f", net));
-        if (net < 0) sb.append(" ⚠️ You spent more than you earned this period.");
-        else sb.append(" ✅ You were net positive this period.");
-        return sb.toString();
-    }
-
-    private String handleCategoryComparison(String bearerToken) {
-        Instant to = Instant.now();
-        Instant from = to.minus(30, ChronoUnit.DAYS);
-        List<Map<String, Object>> cats = transactionClient.getCategories(bearerToken, from, to);
-
-        if (cats == null || cats.isEmpty()) {
-            return "📂 I couldn't find categorized transactions. Make sure your statement has been uploaded and processed.";
-        }
-
-        cats.sort((a, b) -> Double.compare(toDouble(b.get("totalAmount")), toDouble(a.get("totalAmount"))));
-        StringBuilder sb = new StringBuilder("📂 **Category Breakdown — Last 30 Days**\n\n");
-        double total = cats.stream().mapToDouble(c -> toDouble(c.get("totalAmount"))).sum();
-        for (int i = 0; i < Math.min(cats.size(), 8); i++) {
-            Map<String, Object> cat = cats.get(i);
-            double amt = toDouble(cat.get("totalAmount"));
-            double pct = total > 0 ? (amt / total * 100) : 0;
-            String name = String.valueOf(cat.getOrDefault("category", "Other"));
-            sb.append(String.format("• **%s**: ₹%.2f (%.1f%%)\n", name, amt, pct));
-        }
-        if (!cats.isEmpty()) {
-            String topCat = String.valueOf(cats.get(0).getOrDefault("category", "Unknown"));
-            sb.append("\n🏆 Your highest spending category is **").append(topCat).append("**.");
-        }
-        return sb.toString();
-    }
-
-    private String handleAnomalyExplanation() {
-        return """
-            🚨 **Anomaly Detection Status**
-
-            Your anomaly detection service monitors your transaction patterns in real-time. Here's how it works:
-
-            • **What triggers an anomaly**: Transactions that deviate significantly from your historical spending patterns — such as unusually large amounts, transactions in unknown categories, or late-night activity.
-            • **How to view flagged alerts**: Check your 🔔 notification inbox for active anomaly alerts.
-            • **What to do**: If you recognize the transaction, no action needed. If it's unfamiliar, contact your bank immediately.
-
-            💡 Tip: Consistent uploads help the anomaly model learn your normal patterns more accurately over time.
-            """;
-    }
-
-    private String handleForecast(String bearerToken) {
-        List<Map<String, Object>> recent = transactionClient.getRecentCategories(bearerToken, 2);
-        if (recent == null || recent.isEmpty()) {
-            return "🔮 Not enough historical data to generate a forecast. Upload at least 2 months of statements for accurate predictions.";
-        }
-
-        double totalThisMonth = recent.stream().mapToDouble(c -> toDouble(c.get("totalAmount"))).sum();
-        // Simple linear projection: assume 10% variance
-        double forecastMin = totalThisMonth * 0.90;
-        double forecastMax = totalThisMonth * 1.10;
-
-        return String.format("""
-            🔮 **Spending Forecast — Next Month**
-
-            Based on your recent transactions, I estimate your next month's spending will be:
-
-            📉 **Conservative estimate**: ₹%.2f
-            📈 **High estimate**: ₹%.2f
-            🎯 **Central projection**: ₹%.2f
-
-            This is based on your recent 2-month spending average. For more accurate forecasts, upload more historical statements.
-
-            💡 **Tip**: Setting budgets for your top categories will help you stay closer to the conservative estimate.
-            """, forecastMin, forecastMax, totalThisMonth);
-    }
-
-    private String handleBudgetStatus(String bearerToken) {
-        List<Map<String, Object>> budgets = budgetClient.getCurrentMonthBudgets(bearerToken);
-        if (budgets == null || budgets.isEmpty()) {
-            return "📋 You have no budgets set for this month. Head to the **Budgets** page to create category limits!";
-        }
-
-        StringBuilder sb = new StringBuilder("📋 **Budget Status — This Month**\n\n");
-        int overCount = 0;
-        for (Map<String, Object> budget : budgets) {
-            String cat = String.valueOf(budget.getOrDefault("categoryName", "Unknown"));
-            double limit = toDouble(budget.get("limitAmount"));
-            double spent = toDouble(budget.get("spentAmount"));
-            double remaining = limit - spent;
-            double pct = limit > 0 ? (spent / limit * 100) : 0;
-            String status = pct >= 100 ? "🔴 OVER" : pct >= 80 ? "🟠 WARNING" : "🟢 OK";
-            if (pct >= 100) overCount++;
-            sb.append(String.format("• **%s**: ₹%.0f / ₹%.0f (%.0f%%) %s\n", cat, spent, limit, pct, status));
-        }
-        if (overCount > 0) {
-            sb.append(String.format("\n⚠️ You are over budget in **%d** category(s). Consider reviewing your spending.", overCount));
-        } else {
-            sb.append("\n✅ All budgets are within limits. Great job!");
-        }
-        return sb.toString();
-    }
-
-    private String handleWhatIf(String query, String bearerToken) {
-        List<Map<String, Object>> cats = transactionClient.getRecentCategories(bearerToken, 1);
-        if (cats == null || cats.isEmpty()) {
-            return "🤔 I need some transaction history to run a what-if scenario. Please upload a bank statement first.";
-        }
-
-        double totalSpend = cats.stream().mapToDouble(c -> toDouble(c.get("totalAmount"))).sum();
-        // Extract reduction % from query if present
-        double reductionPct = 20.0; // default 20%
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)\\s*%").matcher(query);
-        if (m.find()) reductionPct = Double.parseDouble(m.group(1));
-
-        double savings = totalSpend * (reductionPct / 100.0);
-        double newSpend = totalSpend - savings;
-        double annualSavings = savings * 12;
-
-        return String.format("""
-            🤔 **What-If Scenario Analysis**
-
-            If you reduce your overall spending by **%.0f%%**:
-
-            • 💸 Current monthly spending: ₹%.2f
-            • 🎯 New monthly target: ₹%.2f
-            • 💰 Monthly savings: ₹%.2f
-            • 🏦 **Projected annual savings: ₹%.2f**
-
-            💡 **How to achieve this**:
-            1. Review your top spending category and set a stricter budget limit.
-            2. Use the Budgets page to track progress weekly.
-            3. Check anomaly alerts to avoid unexpected large expenses.
-            """, reductionPct, totalSpend, newSpend, savings, annualSavings);
-    }
-
-    private String handleUnknown() {
-        return """
-            🤖 I'm your FinSight AI Assistant! I can help you with:
-
-            • 📊 **Spending summaries** — "How much did I spend last month?"
-            • 📂 **Category breakdown** — "What are my top spending categories?"
-            • 🚨 **Anomaly explanation** — "Why was my account flagged?"
-            • 🔮 **Spending forecast** — "What will I spend next month?"
-            • 📋 **Budget status** — "Am I over my food budget?"
-            • 🤔 **What-if scenarios** — "If I cut dining by 20%, how much do I save?"
-
-            Try one of these questions to get started!
-            """;
-    }
-
     private double toDouble(Object val) {
         if (val == null) return 0.0;
         try { return ((Number) val).doubleValue(); }
-        catch (Exception e) { return Double.parseDouble(val.toString()); }
+        catch (Exception e) { try { return Double.parseDouble(val.toString()); } catch (Exception ex) { return 0.0; } }
+    }
+
+    private long toLong(Object val) {
+        if (val == null) return 0L;
+        try { return ((Number) val).longValue(); }
+        catch (Exception e) { try { return Long.parseLong(val.toString()); } catch (Exception ex) { return 0L; } }
     }
 }

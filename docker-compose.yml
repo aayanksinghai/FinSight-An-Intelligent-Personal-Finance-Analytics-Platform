@@ -196,6 +196,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
       SPRING_DATA_REDIS_HOST: redis
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      GEMINI_API_KEY: AIzaSyBzAslM7NF0LtKHGtmaBNM7hJwTQrh0YLY
       TRANSACTION_SERVICE_URL: http://transaction-service:8083
       BUDGET_SERVICE_URL: http://budget-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
