@@ -7,23 +7,34 @@ import os
 from app.db.database import get_db, engine
 from app.model.forecaster import get_forecast, calculate_accuracy
 
+import time
+
 app = FastAPI(title="FinSight Forecasting Service")
 
-# Create schemas if they don't exist
-with engine.connect() as conn:
-    conn.execute(text("CREATE SCHEMA IF NOT EXISTS forecasting_schema;"))
-    conn.execute(text("""
-        CREATE TABLE IF NOT EXISTS forecasting_schema.forecast_accuracy_snapshots (
-            id SERIAL PRIMARY KEY,
-            user_email VARCHAR(255) NOT NULL,
-            category VARCHAR(255) NOT NULL,
-            month_year VARCHAR(7) NOT NULL,
-            predicted_amount DECIMAL(19, 2) NOT NULL,
-            actual_amount DECIMAL(19, 2) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    """))
-    conn.commit()
+# Wait for DB to be ready and create schemas
+MAX_RETRIES = 10
+for i in range(MAX_RETRIES):
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("CREATE SCHEMA IF NOT EXISTS forecasting_schema;"))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS forecasting_schema.forecast_accuracy_snapshots (
+                    id SERIAL PRIMARY KEY,
+                    user_email VARCHAR(255) NOT NULL,
+                    category VARCHAR(255) NOT NULL,
+                    month_year VARCHAR(7) NOT NULL,
+                    predicted_amount DECIMAL(19, 2) NOT NULL,
+                    actual_amount DECIMAL(19, 2) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
+            conn.commit()
+        break
+    except Exception as e:
+        if i == MAX_RETRIES - 1:
+            raise e
+        print(f"Database connection failed, retrying in 3 seconds... ({i+1}/{MAX_RETRIES})")
+        time.sleep(3)
 
 # JWT Config
 JWT_PUBLIC_KEY = os.getenv("JWT_PUBLIC_KEY", "").replace("\\n", "\n")
