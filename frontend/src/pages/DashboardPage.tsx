@@ -3,8 +3,11 @@ import { getTransactionSummary, getCategorySummary } from '../api/transactionApi
 import { useAuthStore } from '../store/authStore';
 import { Link } from 'react-router-dom';
 import { 
-  PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend 
+  PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, ErrorBar
 } from 'recharts';
+import { getBudgetsForMonth } from '../api/budgetApi';
+import forecastApi from '../api/forecastApi';
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat('en-IN', {
@@ -23,6 +26,20 @@ export default function DashboardPage() {
     refetchInterval: 10000,
   });
 
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  const { data: budgetData } = useQuery({
+    queryKey: ['budgets', currentMonth],
+    queryFn: () => getBudgetsForMonth(currentMonth),
+    refetchInterval: 10000,
+  });
+
+  const { data: forecastData } = useQuery({
+    queryKey: ['forecast', currentMonth],
+    queryFn: () => forecastApi.getForecast(currentMonth),
+    refetchInterval: 10000,
+  });
+
   const { data: categoryData, isLoading: categoryLoading } = useQuery({
     queryKey: ['category-summary'],
     queryFn: () => getCategorySummary(),
@@ -38,6 +55,25 @@ export default function DashboardPage() {
     value: c.total,
     color: c.color || '#94A3B8'
   })) ?? [];
+
+  // Combine Forecast and Budget Data
+  const categories = Array.from(new Set([
+    ...(budgetData?.map(b => b.categoryName) || []),
+    ...(forecastData?.map(f => f.category) || [])
+  ]));
+
+  const combinedData = categories.map(cat => {
+    const budget = budgetData?.find(b => b.categoryName === cat)?.limitAmount || 0;
+    const forecast = forecastData?.find(f => f.category === cat);
+    return {
+      name: cat,
+      Budget: budget,
+      Predicted: forecast ? forecast.predictedAmount : 0,
+      confidenceInterval: forecast 
+        ? [Math.max(0, forecast.predictedAmount - forecast.lowerBound), Math.max(0, forecast.upperBound - forecast.predictedAmount)]
+        : [0, 0]
+    };
+  }).filter(d => d.Budget > 0 || d.Predicted > 0).slice(0, 5); // top 5
 
   const isLoading = summaryLoading || categoryLoading;
   const hasData = (income > 0 || spend > 0) && chartData.length > 0;
@@ -142,6 +178,40 @@ export default function DashboardPage() {
                     <span className="font-medium text-[#edf2ff]">{formatCurrency(cat.total)}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Forecast vs Budget Chart */}
+            <div className="glass-card flex flex-col p-5 h-96 md:col-span-2">
+              <div className="mb-4">
+                <h2 className="text-base font-semibold text-[#edf2ff]">AI Spend Forecast</h2>
+                <p className="text-xs text-muted">Predicted spending vs budgeted limits for this month</p>
+              </div>
+              <div className="flex-1">
+                {combinedData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={combinedData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2e3650" vertical={false} />
+                      <XAxis dataKey="name" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                      <YAxis stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={(val) => `₹${val}`} />
+                      <RechartsTooltip 
+                        formatter={(value: number) => formatCurrency(value)}
+                        contentStyle={{ backgroundColor: '#1a1f33', borderColor: '#2e3650', borderRadius: '8px' }}
+                        itemStyle={{ color: '#edf2ff' }}
+                        cursor={{ fill: '#2e3650', opacity: 0.4 }}
+                      />
+                      <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px' }}/>
+                      <Bar dataKey="Budget" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Predicted" fill="#f59e0b" radius={[4, 4, 0, 0]}>
+                        <ErrorBar dataKey="confidenceInterval" width={4} strokeWidth={2} stroke="#fcd34d" direction="y" />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-muted">
+                    No budget or forecast data available
+                  </div>
+                )}
               </div>
             </div>
           </div>

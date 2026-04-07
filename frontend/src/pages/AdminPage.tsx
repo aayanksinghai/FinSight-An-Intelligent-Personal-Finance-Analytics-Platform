@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { activateUser, deactivateUser, listUsers } from '../api/adminApi';
+import forecastApi, { AccuracyResponse } from '../api/forecastApi';
 import Notice from '../components/Notice';
 import type { AdminUserResponse } from '../types/api';
 
@@ -24,6 +25,11 @@ export default function AdminPage() {
   });
   const [notice, setNotice] = useState<NoticeState>({ type: 'info', text: '' });
   const [loading, setLoading] = useState(true);
+  const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null);
+
+  useEffect(() => {
+    forecastApi.getAccuracy().then(setAccuracy).catch(console.error);
+  }, []);
 
   async function load(page = 0, selectedStatus: typeof status = status) {
     setLoading(true);
@@ -101,6 +107,24 @@ export default function AdminPage() {
           </button>
         </div>
       </div>
+
+      {accuracy && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="kpi-card bg-brand/10 border border-brand/30">
+            <h3 className="kpi-label">AI Global Accuracy</h3>
+            <p className="kpi-value text-success">{accuracy.accuracyPercentage}%</p>
+          </div>
+          <div className="kpi-card bg-brand/10 border border-brand/30">
+            <h3 className="kpi-label">Global MAPE</h3>
+            <p className="kpi-value text-warning">{accuracy.mape}%</p>
+          </div>
+          <div className="kpi-card bg-brand/10 border border-brand/30">
+            <h3 className="kpi-label">Total Predictions Tracked</h3>
+            <p className="kpi-value text-info">{accuracy.totalSnapshots}</p>
+          </div>
+        </div>
+      )}
+
 
       {notice.text && <Notice type={notice.type} text={notice.text} />}
 

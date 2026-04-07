@@ -209,6 +209,18 @@ services:
     depends_on:
       - kafka
 
+  forecasting-service:
+    image: aayanksinghai/finsight-forecasting-service:latest
+    build:
+      context: ./services/forecasting-service
+    ports:
+      - "8000:8000"
+    environment:
+      DB_URL: postgresql://finsight:finsight@postgres:5432/finsight_user
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+    depends_on:
+      - postgres
+
   frontend:
     image: aayanksinghai/finsight-frontend:latest
     build:
