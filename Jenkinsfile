@@ -77,7 +77,7 @@ pipeline {
                         'api-gateway', 'user-service', 'transaction-service', 
                         'budget-service', 'ingestion-service', 'notification-service', 
                         'admin-service', 'categorization-service', 'anomaly-detection-service', 
-                        'chat-service', 'frontend'
+                        'chat-service', 'forecasting-service', 'frontend'
                     ]
                     docker.withRegistry('', 'DockerHubCred') {
                         services.each { service ->
