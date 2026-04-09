@@ -45,17 +45,8 @@ spring:
 
 security:
   jwt:
-    issuer: finsight-user-service
-    public-key: |
-      -----BEGIN PUBLIC KEY-----
-      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7FXQCJeeUm/la84gPQ
-      vZV91fsWbhe/URGkzjKDTV/t0H1hbYeD/tJlqJMnRcmHhi6gbJiPULj4siffH0+u
-      tZd3XOS9xOa8Ujuxc1DPLWAt3wgmI/IYqPmuhalikNNsAwUR2T/9DHnFmpl/PXlT
-      9aFVDsWyG0iN8Kb3F825r0wI5UGiad+OM50rCT7IjD9RTquCtM5LaeX6I2aJzIN+
-      Ol92y/UmMAZFmknzeJ+37rLfQtURz+CF1HsOlQMcqAGuvHWdNpabwF/B39XlK59l
-      WOAXlPyozGH10AIzWHvhiKKo9qssXDftthpjqZKD2DQNQUUDcaeYOMD6aacfdIcn
-      PQIDAQAB
-      -----END PUBLIC KEY-----
+    issuer: ${JWT_ISSUER}
+    public-key: ${JWT_PUBLIC_KEY}
 
 server:
   port: 8090

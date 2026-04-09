@@ -71,9 +71,15 @@ services:
     build:
       context: ./services/user-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      DB_USER_URL: ${DB_USER_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
       SPRING_DATA_REDIS_HOST: redis
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
@@ -90,9 +96,13 @@ services:
     build:
       context: ./services/transaction-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      DB_TRANSACTION_URL: ${DB_TRANSACTION_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       SPRING_DATA_REDIS_HOST: redis
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
@@ -109,9 +119,13 @@ services:
     build:
       context: ./services/budget-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      DB_USER_URL: ${DB_USER_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       SPRING_DATA_REDIS_HOST: redis
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
@@ -128,8 +142,10 @@ services:
     build:
       context: ./services/ingestion-service
     environment:
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_DATA_MONGODB_URI: "mongodb://mongodb:27017/finsight_ingestion"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      SPRING_DATA_MONGODB_URI: ${MONGODB_URI}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
     depends_on:
       - kafka
       - mongodb
@@ -139,8 +155,12 @@ services:
     build:
       context: ./services/notification-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      DB_USER_URL: ${DB_USER_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      JWT_ISSUER: ${JWT_ISSUER}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
@@ -158,8 +178,8 @@ services:
     ports:
       - "8087:8087"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: ${DB_USER_URL}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
       SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
@@ -175,7 +195,7 @@ services:
     build:
       context: ./services/categorization-service
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
     depends_on:
       - kafka
 
@@ -184,7 +204,7 @@ services:
     build:
       context: ./services/anomaly-detection-service
     environment:
-      KAFKA_BROKERS: kafka:9092
+      KAFKA_BROKERS: ${KAFKA_BOOTSTRAP_SERVERS}
     depends_on:
       - kafka
 
@@ -193,10 +213,10 @@ services:
     build:
       context: ./services/chat-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finsight_user
+      SPRING_DATASOURCE_URL: ${DB_USER_URL}
       SPRING_DATA_REDIS_HOST: redis
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      GEMINI_API_KEY: AIzaSyBzAslM7NF0LtKHGtmaBNM7hJwTQrh0YLY
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       TRANSACTION_SERVICE_URL: http://transaction-service:8083
       BUDGET_SERVICE_URL: http://budget-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
@@ -216,8 +236,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DB_URL: postgresql://finsight:finsight@postgres:5432/finsight_user
-      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      DB_URL: postgresql://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/finsight_user
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
     depends_on:
       - postgres
 

@@ -1,7 +1,8 @@
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getPasswordPolicy, login, register } from '../api/authApi';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { getPasswordPolicy, login, register, googleLogin } from '../api/authApi';
 import Notice from '../components/Notice';
 import { extractApiError } from '../utils/errors';
 import { useAuthStore } from '../store/authStore';
@@ -53,6 +54,23 @@ export default function RegisterPage() {
       }
     } catch (err) {
       setError(extractApiError(err, 'Registration failed.'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onGoogleSuccess(credentialResponse: CredentialResponse) {
+    if (!credentialResponse.credential) return;
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const response = await googleLogin(credentialResponse.credential);
+      setSession(response.accessToken, response.refreshToken);
+      setMessage('Registration successful. Redirecting...');
+      setTimeout(() => navigate('/'), 500);
+    } catch (err) {
+      setError(extractApiError(err, 'Google signup failed.'));
     } finally {
       setLoading(false);
     }
@@ -141,6 +159,23 @@ export default function RegisterPage() {
                 'Create account'
               )}
             </button>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-brand/20" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-[#12141d] px-2 text-muted">Or sign up with</span>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={(res) => void onGoogleSuccess(res)}
+                onError={() => setError('Google Signup Failed')}
+                theme="filled_black"
+                shape="pill"
+                text="signup_with"
+              />
+            </div>
           </div>
 
           <p className="mt-5 text-center text-sm text-muted">

@@ -2,8 +2,10 @@ package com.finsight.user.api.auth;
 
 import com.finsight.user.security.AuthSessionService;
 import com.finsight.user.security.DevAuthService;
+import com.finsight.user.security.GoogleAuthService;
 import com.finsight.user.security.PasswordResetService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,14 +24,17 @@ public class AuthController {
     private final DevAuthService devAuthService;
     private final AuthSessionService authSessionService;
     private final PasswordResetService passwordResetService;
+    private final GoogleAuthService googleAuthService;
 
     public AuthController(
             DevAuthService devAuthService,
             AuthSessionService authSessionService,
-            PasswordResetService passwordResetService) {
+            PasswordResetService passwordResetService,
+            GoogleAuthService googleAuthService) {
         this.devAuthService = devAuthService;
         this.authSessionService = authSessionService;
         this.passwordResetService = passwordResetService;
+        this.googleAuthService = googleAuthService;
     }
 
     @GetMapping("/password-policy")
@@ -58,6 +63,21 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(authSessionService.issueSession(user.email(), user.role()));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthTokenResponse> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        GoogleAuthService.GoogleUserInfo userInfo = googleAuthService.verifyIdToken(request.idToken());
+        DevAuthService.AuthenticatedUser user = devAuthService.authenticateOrRegisterGoogleUser(userInfo.email(), userInfo.name());
+        return ResponseEntity.ok(authSessionService.issueSession(user.email(), user.role()));
+    }
+
+    @PostMapping("/set-password")
+    public ResponseEntity<Void> setPassword(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody SetPasswordRequest request) {
+        devAuthService.setPassword(jwt.getSubject(), request.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/refresh")
@@ -96,4 +116,7 @@ public class AuthController {
         passwordResetService.confirmPasswordReset(request.resetToken(), request.newPassword());
         return ResponseEntity.noContent().build();
     }
+
+    public record GoogleLoginRequest(@NotBlank String idToken) {}
+    public record SetPasswordRequest(@NotBlank String newPassword) {}
 }

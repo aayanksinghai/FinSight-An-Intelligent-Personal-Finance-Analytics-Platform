@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
-import { changePassword, getPasswordPolicy } from '../api/authApi';
+import { changePassword, getPasswordPolicy, setPassword } from '../api/authApi';
 import { deleteMyAccount, getMyProfile, getSecurityOverview, updateProfile } from '../api/profileApi';
 import { useAuthStore } from '../store/authStore';
 import Notice from '../components/Notice';
@@ -111,15 +111,19 @@ export default function ProfilePage() {
 
     setSavingPassword(true);
     try {
-      await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      if (security?.hasPassword) {
+        await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      } else {
+        await setPassword(passwordForm.newPassword);
+      }
       setPasswordForm({ currentPassword: '', newPassword: '' });
-      setMessage('Password changed. You will be signed out...');
+      setMessage('Password updated. You will be signed out...');
       setTimeout(() => {
         clearSession();
         window.location.href = '/login';
       }, 1200);
     } catch (err) {
-      setError(extractApiError(err, 'Password change failed.'));
+      setError(extractApiError(err, 'Password update failed.'));
     } finally {
       setSavingPassword(false);
     }
@@ -252,22 +256,26 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Change password */}
+          {/* Change or Set password */}
           <div className="glass-card p-6">
-            <h2 className="mb-4 text-base font-semibold text-[#edf2ff]">Change password</h2>
+            <h2 className="mb-4 text-base font-semibold text-[#edf2ff]">
+              {security?.hasPassword ? 'Change password' : 'Set password'}
+            </h2>
             <form onSubmit={(e) => void submitPassword(e)} id="password-form" className="flex flex-col gap-4">
-              <div className="field">
-                <label htmlFor="current-password" className="form-label">Current password</label>
-                <input
-                  id="current-password"
-                  type="password"
-                  className="form-input"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))}
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
+              {security?.hasPassword && (
+                <div className="field">
+                  <label htmlFor="current-password" className="form-label">Current password</label>
+                  <input
+                    id="current-password"
+                    type="password"
+                    className="form-input"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+              )}
               <div className="field">
                 <label htmlFor="new-password-profile" className="form-label">New password</label>
                 <input
@@ -282,7 +290,11 @@ export default function ProfilePage() {
                 <p className="mt-1.5 text-[11px] text-muted">{getPasswordPolicyHint(passwordPolicy)}</p>
               </div>
               <button type="submit" className="btn-primary w-full" disabled={savingPassword}>
-                {savingPassword ? <><span className="spinner" /> Updating...</> : 'Change password'}
+                {savingPassword ? (
+                  <><span className="spinner" /> Updating...</>
+                ) : (
+                  security?.hasPassword ? 'Change password' : 'Set password'
+                )}
               </button>
             </form>
           </div>

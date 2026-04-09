@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/api/users/ping",
                                 "/api/users/auth/login",
+                                "/api/users/auth/google",
                                 "/api/users/auth/register",
                                 "/api/users/auth/refresh",
                                 "/api/users/auth/password-policy",

@@ -32,11 +32,13 @@ public class UserProfileService {
                 || user.getCity() != null
                 || user.getAgeGroup() != null
                 || user.getMonthlyIncome() != null;
+        boolean hasPassword = user.getPasswordHash() != null && !user.getPasswordHash().isEmpty();
         return new UserSecurityResponse(
                 user.getEmail(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
-                profileConfigured);
+                profileConfigured,
+                hasPassword);
     }
 
     @Transactional

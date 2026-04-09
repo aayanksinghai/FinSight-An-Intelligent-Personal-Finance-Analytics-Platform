@@ -1,7 +1,8 @@
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../api/authApi';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { login, googleLogin } from '../api/authApi';
 import { useAuthStore } from '../store/authStore';
 import Notice from '../components/Notice';
 import { extractApiError } from '../utils/errors';
@@ -25,6 +26,21 @@ export default function LoginPage() {
       navigate('/');
     } catch (err) {
       setError(extractApiError(err, 'Login failed. Check your credentials.'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onGoogleSuccess(credentialResponse: CredentialResponse) {
+    if (!credentialResponse.credential) return;
+    setLoading(true);
+    setError('');
+    try {
+      const response = await googleLogin(credentialResponse.credential);
+      setSession(response.accessToken, response.refreshToken);
+      navigate('/');
+    } catch (err) {
+      setError(extractApiError(err, 'Google login failed.'));
     } finally {
       setLoading(false);
     }
@@ -116,6 +132,23 @@ export default function LoginPage() {
                 'Sign in'
               )}
             </button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-brand/20" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-[#12141d] px-2 text-muted">Or continue with</span>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={(res) => void onGoogleSuccess(res)}
+                onError={() => setError('Google Login Failed')}
+                theme="filled_black"
+                shape="pill"
+              />
+            </div>
           </div>
 
           <div className="mt-5 flex items-center justify-between text-sm">

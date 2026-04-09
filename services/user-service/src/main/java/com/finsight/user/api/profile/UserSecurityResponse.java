@@ -6,6 +6,7 @@ public record UserSecurityResponse(
         String email,
         Instant accountCreatedAt,
         Instant lastProfileUpdateAt,
-        boolean profileConfigured) {
+        boolean profileConfigured,
+        boolean hasPassword) {
 }
 

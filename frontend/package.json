@@ -11,7 +11,7 @@
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
-    "@react-oauth/google": "^0.12.1",
+    "@react-oauth/google": "^0.12.2",
     "@stomp/stompjs": "^7.3.0",
     "@tanstack/react-query": "^5.28.0",
     "axios": "^1.8.4",

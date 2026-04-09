@@ -52,6 +52,17 @@ export async function confirmPasswordReset(
   await apiClient.post('/api/users/auth/password-reset/confirm', { resetToken, newPassword });
 }
 
+export async function googleLogin(idToken: string): Promise<AuthTokenResponse> {
+  const { data } = await apiClient.post<AuthTokenResponse>('/api/users/auth/google', {
+    idToken,
+  });
+  return data;
+}
+
+export async function setPassword(newPassword: string): Promise<void> {
+  await apiClient.post('/api/users/auth/set-password', { newPassword });
+}
+
 export async function getPasswordPolicy(): Promise<PasswordPolicyResponse> {
   const { data } = await apiClient.get<PasswordPolicyResponse>('/api/users/auth/password-policy');
   return data;

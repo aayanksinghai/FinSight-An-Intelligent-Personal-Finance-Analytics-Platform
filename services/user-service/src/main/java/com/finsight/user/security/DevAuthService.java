@@ -79,6 +79,22 @@ public class DevAuthService {
     }
 
     @Transactional
+    public AuthenticatedUser authenticateOrRegisterGoogleUser(String email, String fullName) {
+        String normalizedEmail = normalizeEmail(email);
+        return userCredentialRepository.findByEmailAndDeactivatedAtIsNull(normalizedEmail)
+            .map(user -> new AuthenticatedUser(user.getEmail(), user.getRole()))
+            .orElseGet(() -> {
+                UserCredential newUser = new UserCredential();
+                newUser.setEmail(normalizedEmail);
+                newUser.setFullName(fullName);
+                // passwordHash stays null
+                newUser.setRole("USER");
+                userCredentialRepository.save(newUser);
+                return new AuthenticatedUser(newUser.getEmail(), newUser.getRole());
+            });
+    }
+
+    @Transactional
     public void changePassword(String email, String currentPassword, String newPassword) {
         UserCredential user = userCredentialRepository.findByEmailAndDeactivatedAtIsNull(normalizeEmail(email))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -95,6 +111,17 @@ public class DevAuthService {
     public void resetPasswordWithoutCurrent(String email, String newPassword) {
         UserCredential user = userCredentialRepository.findByEmailAndDeactivatedAtIsNull(normalizeEmail(email))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userCredentialRepository.save(user);
+    }
+
+    @Transactional
+    public void setPassword(String email, String newPassword) {
+        UserCredential user = userCredentialRepository.findByEmailAndDeactivatedAtIsNull(normalizeEmail(email))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (user.getPasswordHash() != null && !user.getPasswordHash().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is already set");
+        }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userCredentialRepository.save(user);
     }

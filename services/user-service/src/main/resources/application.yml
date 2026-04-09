@@ -2,9 +2,9 @@ spring:
   application:
     name: user-service
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/finsight_user}
-    username: ${DB_USERNAME:finsight}
-    password: ${DB_PASSWORD:finsight}
+    url: ${DB_USER_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -17,6 +17,9 @@ spring:
     repair-on-migrate: true
 
 security:
+  oauth2:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID}
   auth:
     dev-user:
       email: demo@finsight.local
@@ -26,48 +29,11 @@ security:
       password: Adm1nP@ss!
     password-reset-expiry-seconds: 900
   jwt:
-    issuer: finsight-user-service
+    issuer: ${JWT_ISSUER}
     expiry-seconds: 3600
     refresh-expiry-seconds: 604800
-    public-key: |
-      -----BEGIN PUBLIC KEY-----
-      MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArW7FXQCJeeUm/la84gPQ
-      vZV91fsWbhe/URGkzjKDTV/t0H1hbYeD/tJlqJMnRcmHhi6gbJiPULj4siffH0+u
-      tZd3XOS9xOa8Ujuxc1DPLWAt3wgmI/IYqPmuhalikNNsAwUR2T/9DHnFmpl/PXlT
-      9aFVDsWyG0iN8Kb3F825r0wI5UGiad+OM50rCT7IjD9RTquCtM5LaeX6I2aJzIN+
-      Ol92y/UmMAZFmknzeJ+37rLfQtURz+CF1HsOlQMcqAGuvHWdNpabwF/B39XlK59l
-      WOAXlPyozGH10AIzWHvhiKKo9qssXDftthpjqZKD2DQNQUUDcaeYOMD6aacfdIcn
-      PQIDAQAB
-      -----END PUBLIC KEY-----
-    private-key: |
-      -----BEGIN PRIVATE KEY-----
-      MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCtbsVdAIl55Sb+
-      VrziA9C9lX3V+xZuF79REaTOMoNNX+3QfWFth4P+0mWokydFyYeGLqBsmI9QuPiy
-      J98fT661l3dc5L3E5rxSO7FzUM8tYC3fCCYj8hio+a6FqWKQ02wDBRHZP/0MecWa
-      mX89eVP1oVUOxbIbSI3wpvcXzbmvTAjlQaJp344znSsJPsiMP1FOq4K0zktp5foj
-      ZonMg346X3bL9SYwBkWaSfN4n7fust9C1RHP4IXUew6VAxyoAa68dZ02lpvAX8Hf
-      1eUrn2VY4BeU/KjMYfXQAjNYe+GIoqj2qyxcN+22GmOpkoPYNA1BRQNxp5g4wPpp
-      px90hyc9AgMBAAECggEAJcY/7f0BNH/FAbYeL0Mh+rz9+raU4NdCyBNF+FRXtWlc
-      uKGqcAsJZJ3qXvBoKCLYJhFvRx/mbTBQmKsnBaCbHrm2GZFHxQR1hZqzUHjMGye8
-      7fxOJFulY954FOw7B+zItJKs28r8YHSAZecjZ94Oe6xPRKeqHpertLwFCxX3qNaT
-      tidRXKIqC4l4jAPyn1zYQHRquRAM0pvnjQH4W8Ebng2AHVmG0zIUD/H9zen3KRMR
-      Pq1EU6LRq11T1nWtFsPZRoi6iim1Gz3tmBZDkNITMSHV7VPUUTmKUsWnlIkNOuVf
-      6lHcYV14oyCqFMOC13r6EsJkckuUtru4tWLCSsbLUQKBgQD0gCItJN140jZNnhvs
-      b92fuPrhYwcVPkHl7hGxIkCRUodpdiTBlCjIDhEfT0UMgDinIyd3tLsUOKCtI5pZ
-      jhyyMxoDtf305ZIgMlmCLQbYmoBsXopxRam/dPvYWQS/NPzd/5cSiEFZstlsuJVy
-      LtUwXx8huSPqBzTV8jYRmHES8QKBgQC1lvUh9MqncYrgK/LsVf8WngNSjCd5/IzU
-      IDabXH54SxhiXWb4tQLNgyVuxo/t0cj3yMJGmcvcScow88UECJ7LhiJPtW+AP1IG
-      s6vbNjLu6/it8wD2ja9mtKAdODCCF8WTchzKfuFwHqbwuCu1wKJ869L+hkZxfAaQ
-      S5DSXJpBDQKBgQCwW9xLA9RcWgShZ/JsUSRjGWKdQHjTcdzGpTpNso8wQ385KubI
-      Wr4vzzW6h8segT5cEJdfWRW4OEBtosiq4D8CqqmRE6zjANSuNKMrqp7NjmQjxu3F
-      VqJiX1dpboxl/yqGVt35mB7LPJ5oNZxWiEFuaq5h/NFS9W+/Ar7NYk/tgQKBgHk9
-      4kuaspgb0jqcfWRYgqmqNNOvqkfjXG/hVjRjDDnrAcvjSvYxfT6UGrEcuEp0MDdo
-      fnY/B4L8bZhDmj54NvXyiAQqQtkg7fZ1jgAd7uHhAbe6sODtdrgfT2xS8OhbUNqC
-      bUCyeHiwrou4m86NYLABkG3KX0w0H/nFylr54zAdAoGBAN1P3NSbiciEP+MbO+fm
-      IvZOG22k5hY/6dBWPoFx5OP5qM3TkAQLjpSpE3b+9nWTqHw6PfGjfu/Ie5QiquH4
-      KWnB+f9hTiwSfWts1ziZ+CqvdM26h7vSMC8KJQiBwmNiVXP2bkrYD//EUVc4Tlcv
-      cqgFzJzbvaNHKSVPDEVQkFhP
-      -----END PRIVATE KEY-----
+    public-key: ${JWT_PUBLIC_KEY}
+    private-key: ${JWT_PRIVATE_KEY}
   tokens:
     cleanup-interval-ms: 900000
     cleanup-retention-seconds: 259200

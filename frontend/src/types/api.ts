@@ -41,6 +41,7 @@ export interface UserSecurityResponse {
   accountCreatedAt: string;
   lastProfileUpdateAt: string | null;
   profileConfigured: boolean;
+  hasPassword: boolean;
 }
 
 export interface UpdateUserProfileRequest {
