@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 @Service
 public class ChatService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ChatService.class);
+
     // ── System prompt given to Gemini (RAG system prompt) ────────────────────
     private static final String SYSTEM_PROMPT = """
         You are a smart, friendly, and conversational AI Financial Assistant called "FinSight AI".
@@ -90,6 +92,7 @@ public class ChatService {
 
         // 4. Fetch relevant financial data for this intent
         String dataContext = fetchDataContext(intent, request.content(), bearerToken);
+        log.info("Data context for user {}: {}", ownerEmail, dataContext);
 
         // 5. Generate natural-language response via Gemini (RAG)
         String responseText = generateWithGemini(request.content(), dataContext, intent);
@@ -160,7 +163,7 @@ public class ChatService {
             switch (intent) {
                 case SPENDING_SUMMARY, CATEGORY_COMPARISON, FORECAST_INQUIRY -> {
                     Instant to = Instant.now();
-                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    Instant from = to.minus(730, ChronoUnit.DAYS);
                     appendSummaryContext(ctx, bearerToken, from, to);
                     appendCategoryContext(ctx, bearerToken, from, to);
                 }
@@ -168,12 +171,12 @@ public class ChatService {
                     appendBudgetContext(ctx, bearerToken);
                     // Also get spending for comparison
                     Instant to = Instant.now();
-                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    Instant from = to.minus(730, ChronoUnit.DAYS);
                     appendCategoryContext(ctx, bearerToken, from, to);
                 }
                 case WHAT_IF -> {
                     Instant to = Instant.now();
-                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    Instant from = to.minus(730, ChronoUnit.DAYS);
                     appendSummaryContext(ctx, bearerToken, from, to);
                     appendCategoryContext(ctx, bearerToken, from, to);
                     // Extract percentage from query if present
@@ -189,7 +192,7 @@ public class ChatService {
                 default -> {
                     // For UNKNOWN, try to get basic summary anyway
                     Instant to = Instant.now();
-                    Instant from = to.minus(30, ChronoUnit.DAYS);
+                    Instant from = to.minus(730, ChronoUnit.DAYS);
                     appendSummaryContext(ctx, bearerToken, from, to);
                 }
             }
@@ -207,7 +210,7 @@ public class ChatService {
             ctx.append("No transaction summary available for this period.\n");
             return;
         }
-        ctx.append("Transaction summary (last 30 days):\n");
+        ctx.append("Transaction summary (last 2 years):\n");
         double totalDebit = 0, totalCredit = 0;
         for (Map<String, Object> row : summary) {
             String type = String.valueOf(row.getOrDefault("type", ""));
@@ -230,7 +233,7 @@ public class ChatService {
         }
         cats.sort((a, b) -> Double.compare(toDouble(b.get("totalAmount")), toDouble(a.get("totalAmount"))));
         double total = cats.stream().mapToDouble(c -> toDouble(c.get("totalAmount"))).sum();
-        ctx.append("Spending by category (last 30 days, sorted by highest):\n");
+        ctx.append("Spending by category (last 2 years, sorted by highest):\n");
         for (Map<String, Object> cat : cats) {
             String name = String.valueOf(cat.getOrDefault("category", "Other"));
             double amt = toDouble(cat.get("totalAmount"));

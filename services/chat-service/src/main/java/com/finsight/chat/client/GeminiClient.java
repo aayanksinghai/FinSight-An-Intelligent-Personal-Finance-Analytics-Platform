@@ -13,7 +13,7 @@ import java.util.Map;
 
 /**
  * Calls Google Gemini API to generate natural-language responses.
- * Uses the gemini-1.5-flash model (free tier) for low-latency conversational responses.
+ * Uses the gemini-flash-latest model for low-latency conversational responses.
  */
 @Component
 public class GeminiClient {

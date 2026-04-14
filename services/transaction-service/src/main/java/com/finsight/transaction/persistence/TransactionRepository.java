@@ -30,9 +30,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
         @Param("endDate") Instant endDate
     );
 
-    @Query("SELECT c.name as category, c.color as color, SUM(t.amount) as total " +
+    @Query("SELECT COALESCE(c.name, 'Uncategorized') as category, COALESCE(c.color, '#64748b') as color, SUM(t.amount) as total " +
            "FROM Transaction t " +
-           "JOIN t.category c " +
+           "LEFT JOIN t.category c " +
            "WHERE t.ownerEmail = :ownerEmail AND t.type = 'DEBIT' AND t.occurredAt >= :startDate AND t.occurredAt <= :endDate " +
            "GROUP BY c.name, c.color " +
            "ORDER BY total DESC")

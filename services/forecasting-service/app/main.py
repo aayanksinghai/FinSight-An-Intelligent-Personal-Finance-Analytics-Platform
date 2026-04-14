@@ -59,12 +59,19 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
         if "BEGIN PUBLIC KEY" not in pub_key:
             pub_key = f"-----BEGIN PUBLIC KEY-----\n{pub_key}\n-----END PUBLIC KEY-----"
             
+        print(f"DEBUG: Attempting to decode token with key starting with: {pub_key[:30]}")
         payload = jwt.decode(token, pub_key, algorithms=["RS256"])
+        print(f"DEBUG: Token decoded successfully. Payload: {payload}")
         return payload
     except jwt.ExpiredSignatureError:
+        print("DEBUG: Token has expired")
         raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.InvalidTokenError as e:
+        print(f"DEBUG: Invalid token error: {str(e)}")
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
+    except Exception as e:
+        print(f"DEBUG: Unexpected error during token validation: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Authentication error: {str(e)}")
 
 @app.get("/api/forecast")
 def fetch_forecast(monthYear: str, db=Depends(get_db), user: dict = Depends(get_current_user)):

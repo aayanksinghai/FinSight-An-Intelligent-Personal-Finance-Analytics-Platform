@@ -30,6 +30,9 @@ security:
     issuer: ${JWT_ISSUER}
     public-key: ${JWT_PUBLIC_KEY}
 
+gemini:
+  api-key: ${GEMINI_API_KEY}
+
 services:
   transaction-service-url: ${TRANSACTION_SERVICE_URL:http://localhost:8083}
   budget-service-url: ${BUDGET_SERVICE_URL:http://localhost:8084}
