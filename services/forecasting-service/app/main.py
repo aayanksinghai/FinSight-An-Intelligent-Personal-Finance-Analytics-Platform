@@ -6,6 +6,21 @@ import os
 
 from app.db.database import get_db, engine
 from app.model.forecaster import get_forecast, calculate_accuracy
+from app.model.stress_scorer import compute_stress_score, simulate_stress
+from pydantic import BaseModel
+from typing import List, Optional, Any
+
+class SimulateAdjustment(BaseModel):
+    type: str                  # "reduce_category" | "add_recurring" | "remove_recurring"
+    category: Optional[str] = None
+    pct: Optional[float] = None
+    amount: Optional[float] = None
+    label: Optional[str] = None
+
+class SimulateRequest(BaseModel):
+    monthYear: str
+    adjustments: List[SimulateAdjustment]
+
 
 import time
 
@@ -92,6 +107,46 @@ def fetch_accuracy(db=Depends(get_db)):
     but leaving open for internal gateway routing.
     """
     return calculate_accuracy(db)
+
+
+@app.get("/api/stress-score")
+def get_stress_score(monthYear: str, db=Depends(get_db), user: dict = Depends(get_current_user)):
+    """
+    Compute the financial stress score (0–100) for the given month.
+    Returns composite score, 6-month trend, component breakdown, and AI explanation.
+    """
+    email = user.get("preferred_username") or user.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="User email not found in token")
+
+    try:
+        result = compute_stress_score(db, email, monthYear)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Stress score computation failed: {str(e)}")
+
+
+@app.post("/api/stress-score/simulate")
+def simulate_stress_score(request: SimulateRequest, db=Depends(get_db), user: dict = Depends(get_current_user)):
+    """
+    Simulates the impact of hypothetical financial adjustments on the stress score and balance.
+    DOES NOT write to the database — read-only projection.
+    """
+    email = user.get("preferred_username") or user.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="User email not found in token")
+
+    try:
+        adjustments = [a.dict() for a in request.adjustments]
+        result = simulate_stress(db, email, request.monthYear, adjustments)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
+
 
 @app.get("/actuator/health")
 def health():

@@ -42,6 +42,10 @@ spring:
           uri: http://forecasting-service:8000
           predicates:
             - Path=/api/forecast/**
+        - id: stress-score-route
+          uri: http://forecasting-service:8000
+          predicates:
+            - Path=/api/stress-score/**
 
 security:
   jwt:
