@@ -10,10 +10,30 @@ spring:
           uri: http://user-service:8081
           predicates:
             - Path=/api/users/**
+        - id: admin-metrics-users-route
+          uri: http://user-service:8081
+          predicates:
+            - Path=/api/admin/metrics/users
+        - id: admin-metrics-txn-route
+          uri: http://transaction-service:8083
+          predicates:
+            - Path=/api/admin/metrics/transactions
+        - id: admin-ingestion-route
+          uri: http://ingestion-service:8082
+          predicates:
+            - Path=/api/admin/ingestion/**
+        - id: admin-config-route
+          uri: http://admin-service:8088
+          predicates:
+            - Path=/api/admin/config/**
+        - id: admin-models-route
+          uri: http://forecasting-service:8000
+          predicates:
+            - Path=/api/admin/models/**
         - id: admin-user-route
           uri: http://user-service:8081
           predicates:
-            - Path=/api/admin/**
+            - Path=/api/admin/users/**
         - id: transaction-service-route
           uri: http://transaction-service:8083
           predicates:

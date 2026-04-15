@@ -179,7 +179,7 @@ services:
     build:
       context: ./services/admin-service
     ports:
-      - "8087:8087"
+      - "8088:8088"
     environment:
       DB_USER_URL: ${DB_USER_URL}
       DB_USERNAME: ${DB_USERNAME}

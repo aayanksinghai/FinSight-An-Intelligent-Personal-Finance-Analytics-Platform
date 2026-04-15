@@ -140,6 +140,30 @@ public class IngestionJobService {
         );
     }
 
+    public Page<IngestionJobDocument> listAllJobs(int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 50);
+        return jobRepository.findAll(
+            PageRequest.of(Math.max(page, 0), safeSize, Sort.by(Sort.Direction.DESC, "createdAt"))
+        );
+    }
+
+    public java.util.Map<String, Object> getJobStats() {
+        long total = jobRepository.count();
+        if (total == 0) {
+            return java.util.Map.of("totalJobs", 0L, "successRate", 0.0);
+        }
+        long completed = jobRepository.findAll().stream()
+                .filter(j -> j.getStatus() == IngestionJobDocument.Status.COMPLETED)
+                .count();
+        double successRate = Math.round((completed / (double) total) * 10000.0) / 100.0;
+        return java.util.Map.of(
+                "totalJobs", total,
+                "completedJobs", completed,
+                "failedJobs", total - completed,
+                "successRate", successRate
+        );
+    }
+
     public IngestionJobDocument getJob(String ownerEmail, String jobId) {
         return jobRepository.findByIdAndOwnerEmail(jobId, ownerEmail.trim().toLowerCase(Locale.ROOT))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job not found"));

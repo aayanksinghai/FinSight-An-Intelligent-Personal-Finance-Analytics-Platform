@@ -17,7 +17,12 @@ spring:
     table: flyway_schema_history_admin
 
 server:
-  port: 8087
+  port: 8088
+
+security:
+  jwt:
+    issuer: ${JWT_ISSUER}
+    public-key: ${JWT_PUBLIC_KEY}
 
 management:
   endpoints:

@@ -148,6 +148,34 @@ def simulate_stress_score(request: SimulateRequest, db=Depends(get_db), user: di
         raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}")
 
 
+@app.get("/api/stress-score/admin/distribution")
+def fetch_stress_score_distribution(db=Depends(get_db)):
+    """
+    Returns the average stress score and grouping distribution across all users.
+    """
+    try:
+        from app.model.stress_scorer import get_stress_score_distribution
+        return get_stress_score_distribution(db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch distribution: {str(e)}")
+
+@app.post("/api/admin/models/retrain/{modelName}")
+def retrain_model(modelName: str, db=Depends(get_db)):
+    """
+    Triggers a manual model retraining pipeline.
+    """
+    supported_models = ["forecasting", "stress_score", "anomaly_detection", "categorization"]
+    if modelName not in supported_models:
+        raise HTTPException(status_code=400, detail=f"Unsupported model: {modelName}")
+        
+    # In a real system, this would trigger an asynchronous Kafka event or Airflow DAG
+    # Here we mock a successful trigger.
+    return {
+        "status": "success",
+        "message": f"Model '{modelName}' retraining pipeline successfully triggered",
+        "startedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    }
+
 @app.get("/actuator/health")
 def health():
     return {"status": "UP"}

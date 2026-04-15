@@ -49,6 +49,11 @@ public class AdminUserService {
         devAuthService.setUserActive(email, true);
     }
 
+    @Transactional(readOnly = true)
+    public long getTotalUsers() {
+        return userCredentialRepository.count();
+    }
+
     private AdminUserResponse toResponse(UserCredential user) {
         return new AdminUserResponse(
                 user.getEmail(),

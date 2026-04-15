@@ -167,13 +167,35 @@ def compute_stress_score(db: Session, email: str, month_year: str, include_trend
     adherence = _budget_adherence(db, email, month_year)
     adherence_score = (1.0 - adherence) * 100  # 0% adherence = 100 stress
 
+    # Fetch dynamic weights from admin_config table
+    # Default fallback values
+    weights = {
+        'stress.weight.spend': 0.40,
+        'stress.weight.savings': 0.20,
+        'stress.weight.recurring': 0.15,
+        'stress.weight.discretionary': 0.15,
+        'stress.weight.adherence': 0.10
+    }
+    try:
+        q_weights = text("SELECT config_key, config_value FROM admin_config WHERE config_key LIKE 'stress.weight.%'")
+        rows = db.execute(q_weights).fetchall()
+        for r in rows:
+            weights[r[0]] = float(r[1])
+    except Exception:
+        db.rollback()
+        pass
+
+    # Normalize weights just in case they don't sum up exactly to 1.0 due to admin inputs
+    total_w = sum(weights.values())
+    if total_w == 0: total_w = 1.0
+
     # ── Composite score ────────────────────────────────────────────────────────
     composite = (
-        spend_score    * 0.40 +
-        savings_score  * 0.20 +
-        recurring_score * 0.15 +
-        disc_score     * 0.15 +
-        adherence_score * 0.10
+        spend_score     * (weights['stress.weight.spend'] / total_w) +
+        savings_score   * (weights['stress.weight.savings'] / total_w) +
+        recurring_score * (weights['stress.weight.recurring'] / total_w) +
+        disc_score      * (weights['stress.weight.discretionary'] / total_w) +
+        adherence_score * (weights['stress.weight.adherence'] / total_w)
     )
     composite = round(min(max(composite, 0), 100), 1)
 
@@ -353,4 +375,46 @@ def simulate_stress(db: Session, email: str, month_year: str,
         "balanceDelta": round(projected_balance - (income - spend), 2),
         "projectedSpend": round(projected_spend, 2),
         "adjustmentSummary": f"Applied {len(adjustments)} adjustment(s): projected spend changes by ₹{abs(delta_spend):,.0f}."
+    }
+
+# ── admin ──────────────────────────────────────────────────────────────────────
+
+def get_stress_score_distribution(db: Session) -> Dict[str, Any]:
+    """
+    Computes the current month's stress score for all users and returns the distribution.
+    """
+    current_month = datetime.now().strftime("%Y-%m")
+    
+    q = text("SELECT DISTINCT owner_email FROM transaction_schema.transactions")
+    users = [row[0] for row in db.execute(q).fetchall()]
+    
+    distribution = {"Healthy": 0, "Moderate": 0, "Elevated": 0, "High": 0}
+    total_score = 0.0
+    valid_users = 0
+    
+    for email in users:
+        try:
+            # We don't need historical trend for global distribution
+            res = compute_stress_score(db, str(email), current_month, include_trend=False)
+            val = res["score"]
+            label = res["label"]
+            if label in distribution:
+                distribution[label] += 1
+            total_score += val
+            valid_users += 1
+        except Exception:
+            db.rollback()
+            continue
+            
+    avg_score = round(total_score / valid_users, 1) if valid_users > 0 else 0.0
+    
+    return {
+        "averageScore": avg_score,
+        "totalUsersScored": valid_users,
+        "distribution": [
+            {"name": "Healthy", "value": distribution["Healthy"]},
+            {"name": "Moderate", "value": distribution["Moderate"]},
+            {"name": "Elevated", "value": distribution["Elevated"]},
+            {"name": "High", "value": distribution["High"]}
+        ]
     }
