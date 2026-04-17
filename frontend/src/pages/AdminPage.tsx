@@ -11,6 +11,7 @@ import {
   StressDistribution
 } from '../api/adminApi';
 import forecastApi, { AccuracyResponse } from '../api/forecastApi';
+import { broadcastAnnouncement } from '../api/notificationApi';
 
 export default function AdminPage() {
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,9 @@ export default function AdminPage() {
     }
   };
 
+  const [broadcast, setBroadcast] = useState({ title: '', message: '' });
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+
   const fireRetrain = async (model: string) => {
     const p = toast.loading(`Triggering ${model} retrain...`);
     try {
@@ -74,6 +78,23 @@ export default function AdminPage() {
       toast.success(res.message, { id: p });
     } catch (err: any) {
       toast.error(err?.response?.data?.detail || 'Failed to trigger retrain', { id: p });
+    }
+  };
+
+  const handleBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!broadcast.title || !broadcast.message) return;
+    
+    setIsBroadcasting(true);
+    const p = toast.loading('Broadcasting to all users...');
+    try {
+      await broadcastAnnouncement(broadcast.title, broadcast.message);
+      toast.success('Announcement broadcasted successfully!', { id: p });
+      setBroadcast({ title: '', message: '' });
+    } catch (err) {
+      toast.error('Failed to broadcast announcement', { id: p });
+    } finally {
+      setIsBroadcasting(false);
     }
   };
 
@@ -199,6 +220,35 @@ export default function AdminPage() {
             ) : (
                <p className="text-sm text-muted">Stress data unavailable</p>
             )}
+          </div>
+
+          <div className="glass-card">
+            <h2 className="text-lg font-semibold text-white mb-2">Broadcast Announcement</h2>
+            <p className="text-xs text-muted mb-4">Send a platform-wide notification to all connected and future users.</p>
+            <form onSubmit={handleBroadcast} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Announcement Title"
+                className="form-input w-full"
+                value={broadcast.title}
+                onChange={e => setBroadcast({ ...broadcast, title: e.target.value })}
+                required
+              />
+              <textarea
+                placeholder="Type your message here..."
+                className="form-input w-full min-h-[100px]"
+                value={broadcast.message}
+                onChange={e => setBroadcast({ ...broadcast, message: e.target.value })}
+                required
+              />
+              <button 
+                type="submit" 
+                className="btn-primary w-full justify-center"
+                disabled={isBroadcasting}
+              >
+                {isBroadcasting ? 'Broadcasting...' : '📢 Broadcast to All'}
+              </button>
+            </form>
           </div>
         </div>
       </div>

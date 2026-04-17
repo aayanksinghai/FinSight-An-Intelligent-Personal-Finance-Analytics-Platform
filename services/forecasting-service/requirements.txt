@@ -6,3 +6,4 @@ psycopg2-binary==2.9.9
 PyJWT==2.8.0
 cryptography==42.0.5
 python-dotenv==1.0.1
+kafka-python==2.0.2

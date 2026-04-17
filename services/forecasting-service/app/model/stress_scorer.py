@@ -221,6 +221,15 @@ def compute_stress_score(db: Session, email: str, month_year: str, include_trend
         income, spend, recurring_spend, curr_disc, prev_disc
     )
 
+    # ── Kafka Alert: Score change > 10 pts ──────────────────────────────────────
+    if include_trend and len(trend) >= 2:
+        current_score = trend[-1]["score"]
+        prev_score = trend[-2]["score"]
+        if current_score is not None and prev_score is not None:
+            if abs(current_score - prev_score) > 10:
+                from app.messaging.kafka_producer import kafka_producer
+                kafka_producer.send_stress_score_alert(email, current_score, prev_score)
+
     return {
         "month": month_year,
         "score": composite,

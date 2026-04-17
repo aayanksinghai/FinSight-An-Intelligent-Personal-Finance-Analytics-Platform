@@ -11,6 +11,7 @@ import UploadPage from './pages/UploadPage';
 import BudgetPage from './pages/BudgetPage';
 import TransactionsPage from './pages/TransactionsPage';
 import ChatPage from './pages/ChatPage';
+import NotificationsPage from './pages/NotificationsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -88,6 +89,15 @@ export default function App() {
         element={
           <AppShell>
             <ChatPage />
+          </AppShell>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <AppShell>
+            <NotificationsPage />
           </AppShell>
         }
       />

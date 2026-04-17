@@ -118,6 +118,16 @@ def get_forecast(db: Session, email: str, month_year: str) -> List[Dict[str, Any
 
     # Sort so highest predictions are first
     forecasts.sort(key=lambda x: x["predictedAmount"], reverse=True)
+
+    # Kafka Alert: Forecast update available
+    if forecasts:
+        try:
+            from app.messaging.kafka_producer import kafka_producer
+            kafka_producer.send_forecast_update_alert(email, month_year)
+        except Exception as e:
+            # Don't fail the request if Kafka fails
+            print(f"Failed to send forecast alert: {e}")
+
     return forecasts
 
 def calculate_accuracy(db: Session) -> Dict[str, Any]:

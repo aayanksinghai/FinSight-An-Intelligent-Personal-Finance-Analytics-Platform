@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { getStoredTokens } from '../store/tokenStore';
 import type { Notification } from '../api/notificationApi';
@@ -16,7 +17,7 @@ export function useStompClient(onNotification?: (notification: Notification) => 
     if (!tokens.accessToken) return;
 
     const client = new Client({
-      // We use SockJS over the API Gateway proxy
+      // We use SockJS over the API Gateway proxy (mapped 8095 -> 8090)
       webSocketFactory: () => new SockJS('http://localhost:8095/ws'),
       connectHeaders: {
         Authorization: `Bearer ${tokens.accessToken}`,
@@ -29,16 +30,40 @@ export function useStompClient(onNotification?: (notification: Notification) => 
       heartbeatOutgoing: 4000,
     });
 
+    const handleMessage = (message: any) => {
+      if (message.body) {
+        const payload = JSON.parse(message.body) as Notification;
+        
+        // Universal real-time toast
+        const isError = payload.type.includes('EXCEEDED') || payload.type.includes('ANOMALY');
+        const title = payload.title || (isError ? 'Alert' : 'Notice');
+        
+        toast(
+          `${title}: ${payload.message}`,
+          {
+            icon: isError ? '🚨' : '🔔',
+            style: {
+              background: '#1F2937',
+              color: '#F9FAFB',
+              border: '1px solid #374151',
+            },
+          }
+        );
+
+        if (onNotification) {
+          onNotification(payload);
+        }
+      }
+    };
+
     client.onConnect = () => {
       setIsConnected(true);
       
-      // Subscribe to the unified notification queue
-      client.subscribe('/user/queue/notifications', (message) => {
-        if (message.body && onNotification) {
-          const payload = JSON.parse(message.body) as Notification;
-          onNotification(payload);
-        }
-      });
+      // Subscribe to personal notification queue
+      client.subscribe('/user/queue/notifications', handleMessage);
+      
+      // Subscribe to public announcements topic
+      client.subscribe('/topic/announcements', handleMessage);
     };
 
     client.onStompError = (frame) => {

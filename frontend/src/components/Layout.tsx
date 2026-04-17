@@ -139,9 +139,12 @@ function NotificationInbox() {
   });
 
   function getIconForType(type: string) {
-    if (type.includes('ANOMALY')) return '🚨';
-    if (type.includes('EXCEEDED')) return '🛑';
-    if (type.includes('WARNING')) return '⚠️';
+    if (type === 'ANOMALY_DETECTED') return '🚨';
+    if (type === 'BUDGET_EXCEEDED') return '🛑';
+    if (type === 'BUDGET_WARNING') return '⚠️';
+    if (type === 'STRESS_SCORE_CHANGE') return '📊';
+    if (type === 'FORECAST_UPDATE') return '📈';
+    if (type === 'ANNOUNCEMENT') return '📢';
     return '🔔';
   }
 
@@ -180,7 +183,7 @@ function NotificationInbox() {
               </div>
             ) : (
               <div className="flex flex-col">
-                {notifications.map(n => (
+                {notifications.slice(0, 5).map(n => (
                   <div 
                     key={n.id} 
                     className={`p-3 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors cursor-pointer flex gap-3 ${!n.read ? 'bg-white/[0.04]' : ''}`}
@@ -190,15 +193,20 @@ function NotificationInbox() {
                   >
                     <div className="text-xl mt-0.5">{getIconForType(n.type)}</div>
                     <div className="min-w-0 flex-1">
-                      <p className={`text-xs ${!n.read ? 'text-[#edf2ff] font-medium' : 'text-muted'}`}>
+                      <div className="flex justify-between">
+                        <p className={`text-[10px] uppercase font-bold tracking-wider ${!n.read ? 'text-brand' : 'text-muted'}`}>
+                          {n.title || n.type.replace(/_/g, ' ')}
+                        </p>
+                      </div>
+                      <p className={`text-xs mt-0.5 line-clamp-2 ${!n.read ? 'text-[#edf2ff] font-medium' : 'text-muted'}`}>
                         {n.message}
                       </p>
-                      <p className="text-[10px] text-muted mt-1 opacity-70">
-                        {new Date(n.createdAt).toLocaleString()}
+                      <p className="text-[9px] text-muted mt-1 opacity-70 italic">
+                        {new Date(n.createdAt).toLocaleTimeString()}
                       </p>
                     </div>
                     {!n.read && (
-                      <div className="flex-shrink-0 mt-1">
+                      <div className="flex-shrink-0 mt-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-brand" />
                       </div>
                     )}
@@ -206,6 +214,13 @@ function NotificationInbox() {
                 ))}
               </div>
             )}
+            <NavLink 
+              to="/notifications" 
+              onClick={() => setIsOpen(false)}
+              className="p-3 text-center text-xs font-semibold text-brand hover:bg-white/5 border-t border-white/5"
+            >
+              View all notifications
+            </NavLink>
           </div>
         </>
       )}
@@ -305,6 +320,16 @@ export default function Layout({ children }: LayoutProps) {
             >
               <IconChat />
               AI Assistant
+            </NavLink>
+
+            <NavLink
+              to="/notifications"
+              className={({ isActive }) =>
+                `nav-link ${isActive ? 'active' : ''}`
+              }
+            >
+              <IconBell />
+              Notifications
             </NavLink>
 
             <NavLink

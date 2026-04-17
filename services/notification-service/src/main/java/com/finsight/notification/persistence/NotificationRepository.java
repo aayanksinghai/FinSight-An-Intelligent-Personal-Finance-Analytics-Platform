@@ -11,9 +11,11 @@ import java.util.UUID;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
-    List<Notification> findByOwnerEmailOrderByCreatedAtDesc(String ownerEmail);
+    List<Notification> findByOwnerEmailInOrderByCreatedAtDesc(List<String> ownerEmails);
+
+    long countByOwnerEmailInAndIsRead(List<String> ownerEmails, boolean isRead);
 
     @Modifying
-    @Query("UPDATE Notification n SET n.isRead = true WHERE n.ownerEmail = :ownerEmail")
-    void markAllAsReadByOwnerEmail(@Param("ownerEmail") String ownerEmail);
+    @Query("UPDATE Notification n SET n.isRead = true WHERE n.ownerEmail = :ownerEmail OR n.ownerEmail = 'ALL'")
+    void markAllAsReadForUser(@Param("ownerEmail") String ownerEmail);
 }

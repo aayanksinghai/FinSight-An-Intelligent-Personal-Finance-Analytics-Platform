@@ -25,6 +25,18 @@ spring:
     repair-on-migrate: true
     table: flyway_schema_history_notification
 
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+    com:
+      finsight: DEBUG
+
 security:
   jwt:
     issuer: ${JWT_ISSUER}
@@ -37,8 +49,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: "*"
   endpoint:
     health:
-      probes:
-        enabled: true
+      show-details: always
+
+security: true
