@@ -257,6 +257,8 @@ services:
     image: aayanksinghai/finsight-frontend:latest
     build:
       context: ./frontend
+      args:
+        - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     ports:
       - "5175:80"
     depends_on:
