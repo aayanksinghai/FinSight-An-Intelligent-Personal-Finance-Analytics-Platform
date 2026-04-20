@@ -69,7 +69,12 @@ public final class ColumnDetector {
         for (int i = 0; i < headers.length; i++) {
             String h = headers[i].trim().toLowerCase(Locale.ROOT);
             for (String c : candidates) {
-                if (h.contains(c)) return i;
+                // To avoid "description" matching "cr" or "dr", require word boundaries if it's a short token
+                if (c.length() <= 2) {
+                    if (h.matches(".*\\b" + c + "\\b.*")) return i;
+                } else {
+                    if (h.contains(c)) return i;
+                }
             }
         }
         return -1;

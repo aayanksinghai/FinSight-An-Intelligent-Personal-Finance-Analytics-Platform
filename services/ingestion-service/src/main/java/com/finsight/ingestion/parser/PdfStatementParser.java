@@ -105,6 +105,10 @@ public class PdfStatementParser {
                 rawDesc = remainder.substring(0, firstAmt.start()).trim();
             }
 
+            if (debit == null && credit == null) {
+                continue; // Skip invalid or zero-amount rows
+            }
+
             ParsedRow row = new ParsedRow();
             row.setOccurredAt(occurredAt);
             row.setRawDescription(rawDesc.isBlank() ? null : rawDesc);

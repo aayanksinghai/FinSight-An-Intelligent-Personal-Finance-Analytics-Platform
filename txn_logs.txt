@@ -1,0 +1,250 @@
+transaction-service-1  | 	max.poll.records = 500
+transaction-service-1  | 	metadata.max.age.ms = 300000
+transaction-service-1  | 	metric.reporters = []
+transaction-service-1  | 	metrics.num.samples = 2
+transaction-service-1  | 	metrics.recording.level = INFO
+transaction-service-1  | 	metrics.sample.window.ms = 30000
+transaction-service-1  | 	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+transaction-service-1  | 	receive.buffer.bytes = 65536
+transaction-service-1  | 	reconnect.backoff.max.ms = 1000
+transaction-service-1  | 	reconnect.backoff.ms = 50
+transaction-service-1  | 	request.timeout.ms = 30000
+transaction-service-1  | 	retry.backoff.max.ms = 1000
+transaction-service-1  | 	retry.backoff.ms = 100
+transaction-service-1  | 	sasl.client.callback.handler.class = null
+transaction-service-1  | 	sasl.jaas.config = null
+transaction-service-1  | 	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+transaction-service-1  | 	sasl.kerberos.min.time.before.relogin = 60000
+transaction-service-1  | 	sasl.kerberos.service.name = null
+transaction-service-1  | 	sasl.kerberos.ticket.renew.jitter = 0.05
+transaction-service-1  | 	sasl.kerberos.ticket.renew.window.factor = 0.8
+transaction-service-1  | 	sasl.login.callback.handler.class = null
+transaction-service-1  | 	sasl.login.class = null
+transaction-service-1  | 	sasl.login.connect.timeout.ms = null
+transaction-service-1  | 	sasl.login.read.timeout.ms = null
+transaction-service-1  | 	sasl.login.refresh.buffer.seconds = 300
+transaction-service-1  | 	sasl.login.refresh.min.period.seconds = 60
+transaction-service-1  | 	sasl.login.refresh.window.factor = 0.8
+transaction-service-1  | 	sasl.login.refresh.window.jitter = 0.05
+transaction-service-1  | 	sasl.login.retry.backoff.max.ms = 10000
+transaction-service-1  | 	sasl.login.retry.backoff.ms = 100
+transaction-service-1  | 	sasl.mechanism = GSSAPI
+transaction-service-1  | 	sasl.oauthbearer.clock.skew.seconds = 30
+transaction-service-1  | 	sasl.oauthbearer.expected.audience = null
+transaction-service-1  | 	sasl.oauthbearer.expected.issuer = null
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.url = null
+transaction-service-1  | 	sasl.oauthbearer.scope.claim.name = scope
+transaction-service-1  | 	sasl.oauthbearer.sub.claim.name = sub
+transaction-service-1  | 	sasl.oauthbearer.token.endpoint.url = null
+transaction-service-1  | 	security.protocol = PLAINTEXT
+transaction-service-1  | 	security.providers = null
+transaction-service-1  | 	send.buffer.bytes = 131072
+transaction-service-1  | 	session.timeout.ms = 45000
+transaction-service-1  | 	socket.connection.setup.timeout.max.ms = 30000
+transaction-service-1  | 	socket.connection.setup.timeout.ms = 10000
+transaction-service-1  | 	ssl.cipher.suites = null
+transaction-service-1  | 	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+transaction-service-1  | 	ssl.endpoint.identification.algorithm = https
+transaction-service-1  | 	ssl.engine.factory.class = null
+transaction-service-1  | 	ssl.key.password = null
+transaction-service-1  | 	ssl.keymanager.algorithm = SunX509
+transaction-service-1  | 	ssl.keystore.certificate.chain = null
+transaction-service-1  | 	ssl.keystore.key = null
+transaction-service-1  | 	ssl.keystore.location = null
+transaction-service-1  | 	ssl.keystore.password = null
+transaction-service-1  | 	ssl.keystore.type = JKS
+transaction-service-1  | 	ssl.protocol = TLSv1.3
+transaction-service-1  | 	ssl.provider = null
+transaction-service-1  | 	ssl.secure.random.implementation = null
+transaction-service-1  | 	ssl.trustmanager.algorithm = PKIX
+transaction-service-1  | 	ssl.truststore.certificates = null
+transaction-service-1  | 	ssl.truststore.location = null
+transaction-service-1  | 	ssl.truststore.password = null
+transaction-service-1  | 	ssl.truststore.type = JKS
+transaction-service-1  | 	value.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+transaction-service-1  | 
+transaction-service-1  | 2026-04-20T18:03:46.152Z  INFO 1 --- [transaction-service] [           main] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+transaction-service-1  | 2026-04-20T18:03:46.154Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Cluster ID: yEfsAN3ESZycfEl2mS4dVg
+transaction-service-1  | 2026-04-20T18:03:46.155Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Discovered group coordinator kafka:9092 (id: 2147483646 rack: null)
+transaction-service-1  | 2026-04-20T18:03:46.157Z  INFO 1 --- [transaction-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : These configurations '[spring.json.trusted.packages]' were supplied but are not used yet.
+transaction-service-1  | 2026-04-20T18:03:46.157Z  INFO 1 --- [transaction-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.7.1
+transaction-service-1  | 2026-04-20T18:03:46.158Z  INFO 1 --- [transaction-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: e2494e6ffb89f828
+transaction-service-1  | 2026-04-20T18:03:46.158Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] (Re-)joining group
+transaction-service-1  | 2026-04-20T18:03:46.158Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Cluster ID: yEfsAN3ESZycfEl2mS4dVg
+transaction-service-1  | 2026-04-20T18:03:46.158Z  INFO 1 --- [transaction-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1776708226157
+transaction-service-1  | 2026-04-20T18:03:46.159Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Discovered group coordinator kafka:9092 (id: 2147483646 rack: null)
+transaction-service-1  | 2026-04-20T18:03:46.159Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] (Re-)joining group
+transaction-service-1  | 2026-04-20T18:03:46.163Z  INFO 1 --- [transaction-service] [           main] o.a.k.c.c.internals.LegacyKafkaConsumer  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Subscribed to topic(s): transactions.categorized
+transaction-service-1  | 2026-04-20T18:03:46.175Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Cluster ID: yEfsAN3ESZycfEl2mS4dVg
+transaction-service-1  | 2026-04-20T18:03:46.176Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Discovered group coordinator kafka:9092 (id: 2147483646 rack: null)
+transaction-service-1  | 2026-04-20T18:03:46.178Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] (Re-)joining group
+transaction-service-1  | 2026-04-20T18:03:46.182Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Request joining group due to: need to re-join with the given member-id: consumer-transaction-service-group-1-cb154667-0b21-439e-af36-e2e98966f28f
+transaction-service-1  | 2026-04-20T18:03:46.182Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] (Re-)joining group
+transaction-service-1  | 2026-04-20T18:03:46.182Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Request joining group due to: need to re-join with the given member-id: consumer-transaction-service-group-2-0ae7fed0-a839-40be-983a-dd529a52874a
+transaction-service-1  | 2026-04-20T18:03:46.183Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] (Re-)joining group
+transaction-service-1  | 2026-04-20T18:03:46.185Z  INFO 1 --- [transaction-service] [           main] c.f.t.TransactionServiceApplication      : Started TransactionServiceApplication in 26.76 seconds (process running for 29.477)
+transaction-service-1  | 2026-04-20T18:03:46.186Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Request joining group due to: need to re-join with the given member-id: consumer-transaction-service-group-3-cadd212f-a6d2-4d2c-b3ca-9727a8265cd1
+transaction-service-1  | 2026-04-20T18:03:46.186Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] (Re-)joining group
+transaction-service-1  | 2026-04-20T18:04:23.084Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Successfully joined group with generation Generation{generationId=12, memberId='consumer-transaction-service-group-3-cadd212f-a6d2-4d2c-b3ca-9727a8265cd1', protocol='range'}
+transaction-service-1  | 2026-04-20T18:04:23.084Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Successfully joined group with generation Generation{generationId=12, memberId='consumer-transaction-service-group-1-cb154667-0b21-439e-af36-e2e98966f28f', protocol='range'}
+transaction-service-1  | 2026-04-20T18:04:23.084Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Successfully joined group with generation Generation{generationId=12, memberId='consumer-transaction-service-group-2-0ae7fed0-a839-40be-983a-dd529a52874a', protocol='range'}
+transaction-service-1  | 2026-04-20T18:04:23.102Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Finished assignment for group at generation 12: {consumer-transaction-service-group-1-cb154667-0b21-439e-af36-e2e98966f28f=Assignment(partitions=[transactions.ingested-0, transactions.ingested-1, transactions.ingested-2]), consumer-transaction-service-group-2-0ae7fed0-a839-40be-983a-dd529a52874a=Assignment(partitions=[user.events-0]), consumer-transaction-service-group-3-cadd212f-a6d2-4d2c-b3ca-9727a8265cd1=Assignment(partitions=[transactions.categorized-0, transactions.categorized-1, transactions.categorized-2])}
+transaction-service-1  | 2026-04-20T18:04:23.106Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Successfully synced group in generation Generation{generationId=12, memberId='consumer-transaction-service-group-3-cadd212f-a6d2-4d2c-b3ca-9727a8265cd1', protocol='range'}
+transaction-service-1  | 2026-04-20T18:04:23.106Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Successfully synced group in generation Generation{generationId=12, memberId='consumer-transaction-service-group-2-0ae7fed0-a839-40be-983a-dd529a52874a', protocol='range'}
+transaction-service-1  | 2026-04-20T18:04:23.106Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Successfully synced group in generation Generation{generationId=12, memberId='consumer-transaction-service-group-1-cb154667-0b21-439e-af36-e2e98966f28f', protocol='range'}
+transaction-service-1  | 2026-04-20T18:04:23.106Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Notifying assignor about the new Assignment(partitions=[transactions.categorized-0, transactions.categorized-1, transactions.categorized-2])
+transaction-service-1  | 2026-04-20T18:04:23.106Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Notifying assignor about the new Assignment(partitions=[user.events-0])
+transaction-service-1  | 2026-04-20T18:04:23.106Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Notifying assignor about the new Assignment(partitions=[transactions.ingested-0, transactions.ingested-1, transactions.ingested-2])
+transaction-service-1  | 2026-04-20T18:04:23.108Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Adding newly assigned partitions: transactions.ingested-0, transactions.ingested-1, transactions.ingested-2
+transaction-service-1  | 2026-04-20T18:04:23.108Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Adding newly assigned partitions: transactions.categorized-0, transactions.categorized-1, transactions.categorized-2
+transaction-service-1  | 2026-04-20T18:04:23.108Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] k.c.c.i.ConsumerRebalanceListenerInvoker : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Adding newly assigned partitions: user.events-0
+transaction-service-1  | 2026-04-20T18:04:23.112Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Found no committed offset for partition transactions.ingested-2
+transaction-service-1  | 2026-04-20T18:04:23.112Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Found no committed offset for partition user.events-0
+transaction-service-1  | 2026-04-20T18:04:23.112Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Found no committed offset for partition transactions.ingested-1
+transaction-service-1  | 2026-04-20T18:04:23.113Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition transactions.ingested-0 to the committed offset FetchPosition{offset=212, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[kafka:9092 (id: 1 rack: null)], epoch=0}}
+transaction-service-1  | 2026-04-20T18:04:23.113Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition transactions.categorized-1 to the committed offset FetchPosition{offset=15, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[kafka:9092 (id: 1 rack: null)], epoch=0}}
+transaction-service-1  | 2026-04-20T18:04:23.113Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition transactions.categorized-0 to the committed offset FetchPosition{offset=10, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[kafka:9092 (id: 1 rack: null)], epoch=0}}
+transaction-service-1  | 2026-04-20T18:04:23.114Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerUtils        : Setting offset for partition transactions.categorized-2 to the committed offset FetchPosition{offset=8, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[kafka:9092 (id: 1 rack: null)], epoch=0}}
+transaction-service-1  | 2026-04-20T18:04:23.114Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : transaction-service-group: partitions assigned: [transactions.categorized-0, transactions.categorized-1, transactions.categorized-2]
+transaction-service-1  | 2026-04-20T18:04:23.118Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Resetting offset for partition user.events-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[kafka:9092 (id: 1 rack: null)], epoch=0}}.
+transaction-service-1  | 2026-04-20T18:04:23.118Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Resetting offset for partition transactions.ingested-2 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[kafka:9092 (id: 1 rack: null)], epoch=0}}.
+transaction-service-1  | 2026-04-20T18:04:23.119Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : transaction-service-group: partitions assigned: [user.events-0]
+transaction-service-1  | 2026-04-20T18:04:23.119Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Resetting offset for partition transactions.ingested-1 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[kafka:9092 (id: 1 rack: null)], epoch=0}}.
+transaction-service-1  | 2026-04-20T18:04:23.119Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : transaction-service-group: partitions assigned: [transactions.ingested-0, transactions.ingested-1, transactions.ingested-2]
+transaction-service-1  | 2026-04-20T18:06:40.816Z  INFO 1 --- [transaction-service] [nio-8083-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+transaction-service-1  | 2026-04-20T18:06:40.817Z  INFO 1 --- [transaction-service] [nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+transaction-service-1  | 2026-04-20T18:06:40.818Z  INFO 1 --- [transaction-service] [nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+transaction-service-1  | 2026-04-20T18:07:11.605Z  WARN 1 --- [transaction-service] [nio-8083-exec-9] ration$PageModule$WarningLoggingModifier : Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
+transaction-service-1  | 	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
+transaction-service-1  | 	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
+transaction-service-1  | 
+transaction-service-1  | 2026-04-20T18:07:35.115Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] c.f.t.service.UserDeletedConsumer        : Received user.deleted event for email: aayanksinghai02@gmail.com
+transaction-service-1  | 2026-04-20T18:12:46.202Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Node -1 disconnected.
+transaction-service-1  | 2026-04-20T18:12:46.224Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Node -1 disconnected.
+transaction-service-1  | 2026-04-20T18:12:46.556Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Node -1 disconnected.
+transaction-service-1  | 2026-04-20T18:14:26.670Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] c.f.t.service.UserDeletedConsumer        : Received user.deleted event for email: aayanksinghai02@gmail.com
+transaction-service-1  | 2026-04-20T18:14:54.739Z  WARN 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Event a28588d0-e33a-48dd-a10c-c13733ad3e47 skipped or failed to save.
+transaction-service-1  | 2026-04-20T18:14:54.744Z  WARN 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Event 99dd45ad-e3a8-4e92-ac6c-d4473eeb3ebb skipped or failed to save.
+transaction-service-1  | 2026-04-20T18:14:54.772Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 650 DEBIT (ID: 10ff73c3-4b0a-484c-85bb-637388e3bc09)
+transaction-service-1  | 2026-04-20T18:14:54.779Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.clients.producer.ProducerConfig    : ProducerConfig values: 
+transaction-service-1  | 	acks = -1
+transaction-service-1  | 	auto.include.jmx.reporter = true
+transaction-service-1  | 	batch.size = 16384
+transaction-service-1  | 	bootstrap.servers = [kafka:9092]
+transaction-service-1  | 	buffer.memory = 33554432
+transaction-service-1  | 	client.dns.lookup = use_all_dns_ips
+transaction-service-1  | 	client.id = transaction-service-producer-1
+transaction-service-1  | 	compression.type = none
+transaction-service-1  | 	connections.max.idle.ms = 540000
+transaction-service-1  | 	delivery.timeout.ms = 120000
+transaction-service-1  | 	enable.idempotence = true
+transaction-service-1  | 	enable.metrics.push = true
+transaction-service-1  | 	interceptor.classes = []
+transaction-service-1  | 	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+transaction-service-1  | 	linger.ms = 0
+transaction-service-1  | 	max.block.ms = 60000
+transaction-service-1  | 	max.in.flight.requests.per.connection = 5
+transaction-service-1  | 	max.request.size = 1048576
+transaction-service-1  | 	metadata.max.age.ms = 300000
+transaction-service-1  | 	metadata.max.idle.ms = 300000
+transaction-service-1  | 	metric.reporters = []
+transaction-service-1  | 	metrics.num.samples = 2
+transaction-service-1  | 	metrics.recording.level = INFO
+transaction-service-1  | 	metrics.sample.window.ms = 30000
+transaction-service-1  | 	partitioner.adaptive.partitioning.enable = true
+transaction-service-1  | 	partitioner.availability.timeout.ms = 0
+transaction-service-1  | 	partitioner.class = null
+transaction-service-1  | 	partitioner.ignore.keys = false
+transaction-service-1  | 	receive.buffer.bytes = 32768
+transaction-service-1  | 	reconnect.backoff.max.ms = 1000
+transaction-service-1  | 	reconnect.backoff.ms = 50
+transaction-service-1  | 	request.timeout.ms = 30000
+transaction-service-1  | 	retries = 2147483647
+transaction-service-1  | 	retry.backoff.max.ms = 1000
+transaction-service-1  | 	retry.backoff.ms = 100
+transaction-service-1  | 	sasl.client.callback.handler.class = null
+transaction-service-1  | 	sasl.jaas.config = null
+transaction-service-1  | 	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+transaction-service-1  | 	sasl.kerberos.min.time.before.relogin = 60000
+transaction-service-1  | 	sasl.kerberos.service.name = null
+transaction-service-1  | 	sasl.kerberos.ticket.renew.jitter = 0.05
+transaction-service-1  | 	sasl.kerberos.ticket.renew.window.factor = 0.8
+transaction-service-1  | 	sasl.login.callback.handler.class = null
+transaction-service-1  | 	sasl.login.class = null
+transaction-service-1  | 	sasl.login.connect.timeout.ms = null
+transaction-service-1  | 	sasl.login.read.timeout.ms = null
+transaction-service-1  | 	sasl.login.refresh.buffer.seconds = 300
+transaction-service-1  | 	sasl.login.refresh.min.period.seconds = 60
+transaction-service-1  | 	sasl.login.refresh.window.factor = 0.8
+transaction-service-1  | 	sasl.login.refresh.window.jitter = 0.05
+transaction-service-1  | 	sasl.login.retry.backoff.max.ms = 10000
+transaction-service-1  | 	sasl.login.retry.backoff.ms = 100
+transaction-service-1  | 	sasl.mechanism = GSSAPI
+transaction-service-1  | 	sasl.oauthbearer.clock.skew.seconds = 30
+transaction-service-1  | 	sasl.oauthbearer.expected.audience = null
+transaction-service-1  | 	sasl.oauthbearer.expected.issuer = null
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+transaction-service-1  | 	sasl.oauthbearer.jwks.endpoint.url = null
+transaction-service-1  | 	sasl.oauthbearer.scope.claim.name = scope
+transaction-service-1  | 	sasl.oauthbearer.sub.claim.name = sub
+transaction-service-1  | 	sasl.oauthbearer.token.endpoint.url = null
+transaction-service-1  | 	security.protocol = PLAINTEXT
+transaction-service-1  | 	security.providers = null
+transaction-service-1  | 	send.buffer.bytes = 131072
+transaction-service-1  | 	socket.connection.setup.timeout.max.ms = 30000
+transaction-service-1  | 	socket.connection.setup.timeout.ms = 10000
+transaction-service-1  | 	ssl.cipher.suites = null
+transaction-service-1  | 	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+transaction-service-1  | 	ssl.endpoint.identification.algorithm = https
+transaction-service-1  | 	ssl.engine.factory.class = null
+transaction-service-1  | 	ssl.key.password = null
+transaction-service-1  | 	ssl.keymanager.algorithm = SunX509
+transaction-service-1  | 	ssl.keystore.certificate.chain = null
+transaction-service-1  | 	ssl.keystore.key = null
+transaction-service-1  | 	ssl.keystore.location = null
+transaction-service-1  | 	ssl.keystore.password = null
+transaction-service-1  | 	ssl.keystore.type = JKS
+transaction-service-1  | 	ssl.protocol = TLSv1.3
+transaction-service-1  | 	ssl.provider = null
+transaction-service-1  | 	ssl.secure.random.implementation = null
+transaction-service-1  | 	ssl.trustmanager.algorithm = PKIX
+transaction-service-1  | 	ssl.truststore.certificates = null
+transaction-service-1  | 	ssl.truststore.location = null
+transaction-service-1  | 	ssl.truststore.password = null
+transaction-service-1  | 	ssl.truststore.type = JKS
+transaction-service-1  | 	transaction.timeout.ms = 60000
+transaction-service-1  | 	transactional.id = null
+transaction-service-1  | 	value.serializer = class org.apache.kafka.common.serialization.StringSerializer
+transaction-service-1  | 
+transaction-service-1  | 2026-04-20T18:14:54.780Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.c.t.i.KafkaMetricsCollector        : initializing Kafka metrics collector
+transaction-service-1  | 2026-04-20T18:14:54.787Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=transaction-service-producer-1] Instantiated an idempotent producer.
+transaction-service-1  | 2026-04-20T18:14:54.802Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.7.1
+transaction-service-1  | 2026-04-20T18:14:54.802Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: e2494e6ffb89f828
+transaction-service-1  | 2026-04-20T18:14:54.802Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1776708894801
+transaction-service-1  | 2026-04-20T18:14:54.806Z  INFO 1 --- [transaction-service] [vice-producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=transaction-service-producer-1] Cluster ID: yEfsAN3ESZycfEl2mS4dVg
+transaction-service-1  | 2026-04-20T18:14:54.806Z  INFO 1 --- [transaction-service] [vice-producer-1] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=transaction-service-producer-1] ProducerId set to 1002 with epoch 0
+transaction-service-1  | 2026-04-20T18:14:54.831Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 2340 DEBIT (ID: f31a12c0-de9d-473a-8ad4-893fd6cab686)
+transaction-service-1  | 2026-04-20T18:14:54.840Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 3820 DEBIT (ID: 1d69e13f-56a0-4067-aebf-947bb823f114)
+transaction-service-1  | 2026-04-20T18:14:54.848Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 480 DEBIT (ID: e89ef9d6-97db-4068-9e70-3555ef0715d7)
+transaction-service-1  | 2026-04-20T18:14:54.857Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 320 DEBIT (ID: 2489d319-e04d-4aa2-accd-db8ac41be6a5)
+transaction-service-1  | 2026-04-20T18:14:54.866Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 18500 DEBIT (ID: 9c8be30f-6d31-4dd5-8d8e-ee6569669162)
+transaction-service-1  | 2026-04-20T18:14:54.874Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 1339 DEBIT (ID: 32c892b0-280f-4220-ae87-cd1f17c51a11)
+transaction-service-1  | 2026-04-20T18:14:54.882Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] c.f.t.s.TransactionIngestionConsumer     : Saved and Committed transaction for user aayanksinghai02@gmail.com amount 5000 DEBIT (ID: 742d2200-cccd-4d8e-b7b9-fc48ad4b72a2)
+transaction-service-1  | 2026-04-20T18:14:55.473Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction f31a12c0-de9d-473a-8ad4-893fd6cab686 to Utilities
+transaction-service-1  | 2026-04-20T18:14:55.482Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction 9c8be30f-6d31-4dd5-8d8e-ee6569669162 to Housing
+transaction-service-1  | 2026-04-20T18:14:55.491Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction 10ff73c3-4b0a-484c-85bb-637388e3bc09 to Food & Dining
+transaction-service-1  | 2026-04-20T18:14:55.496Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction 32c892b0-280f-4220-ae87-cd1f17c51a11 to Shopping
+transaction-service-1  | 2026-04-20T18:14:55.502Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction 742d2200-cccd-4d8e-b7b9-fc48ad4b72a2 to Uncategorized
+transaction-service-1  | 2026-04-20T18:14:55.509Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction 1d69e13f-56a0-4067-aebf-947bb823f114 to Uncategorized
+transaction-service-1  | 2026-04-20T18:14:55.514Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction e89ef9d6-97db-4068-9e70-3555ef0715d7 to Food & Dining
+transaction-service-1  | 2026-04-20T18:14:55.520Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] c.f.t.s.TransactionCategorizedConsumer   : Successfully categorized transaction 2489d319-e04d-4aa2-accd-db8ac41be6a5 to Utilities
+transaction-service-1  | 2026-04-20T18:16:44.311Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] c.f.t.service.UserDeletedConsumer        : Received user.deleted event for email: aayanksinghai02@gmail.com
+transaction-service-1  | 2026-04-20T18:22:46.533Z  INFO 1 --- [transaction-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-transaction-service-group-3, groupId=transaction-service-group] Node -1 disconnected.
+transaction-service-1  | 2026-04-20T18:22:46.701Z  INFO 1 --- [transaction-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-transaction-service-group-2, groupId=transaction-service-group] Node -1 disconnected.
+transaction-service-1  | 2026-04-20T18:22:46.792Z  INFO 1 --- [transaction-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-transaction-service-group-1, groupId=transaction-service-group] Node -1 disconnected.
+transaction-service-1  | 2026-04-20T18:24:24.991Z  INFO 1 --- [transaction-service] [vice-producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=transaction-service-producer-1] Node -1 disconnected.

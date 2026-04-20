@@ -1,0 +1,19 @@
+Account Holder Name,RAHUL SHARMA,,,,,,
+Account Number,XXXX XXXX XXXX 1234,,,,,,
+Account Type,Savings Account,,,,,,
+Branch,Koramangala Branch - Bengaluru,,,,,,
+IFSC Code,SBIN0010924,,,,,,
+Statement Period,01-04-2025 to 28-04-2025,,,,,,
+Currency,INR,,,,,,
+,,,,,,,
+Sl. No.,Transaction Date,Value Date,Description,Ref No./Cheque No.,Debit (INR),Credit (INR),Balance (INR)
+1,01-Jan-2025,01-Jan-2025,Opening Balance,,,,85420.5
+2,01-Jan-2025,01-Jan-2025,NEFT CR-HDFC0001234-SHARMA ENTERPRISES-Salary January 2025,NEFT2501010001,,95000,180420.5
+3,02-Jan-2025,02-Jan-2025,UPI/Swiggy/Food Order/upi,UPI2501020001,650,,179770.5
+4,02-Jan-2025,02-Jan-2025,UPI/BESCOM/Electricity Bill Jan/upi,UPI2501020002,2340,,177430.5
+5,03-Jan-2025,03-Jan-2025,POS/DMART/KORAMANGALA/Grocery,POS2501030001,3820,,173610.5
+6,04-Jan-2025,04-Jan-2025,UPI/Zomato/Food Order/upi,UPI2501040001,480,,173130.5
+7,04-Jan-2025,04-Jan-2025,UPI/PhonePe/Ola Cabs/upi,UPI2501040002,320,,172810.5
+8,05-Jan-2025,05-Jan-2025,UPI/HDFC Bank/Home Loan EMI Jan/upi,UPI2501050001,18500,,154310.5
+9,06-Jan-2025,06-Jan-2025,UPI/Amazon/Online Shopping/upi,UPI2501060001,1339,,153011.5
+10,07-Jan-2025,07-Jan-2025,ATM WDL/SBI ATM KORAMANGALA/Cash Withdrawal,ATM2501070001,5000,,148011.5

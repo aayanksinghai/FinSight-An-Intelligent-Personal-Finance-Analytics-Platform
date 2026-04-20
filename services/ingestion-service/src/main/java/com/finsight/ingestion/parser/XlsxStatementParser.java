@@ -129,6 +129,10 @@ public class XlsxStatementParser {
                 else debit = amt;
             }
 
+            if (debit == null && credit == null) {
+                continue; // Skip invalid or zero-amount rows
+            }
+
             ParsedRow parsed = new ParsedRow();
             parsed.setOccurredAt(occurredAt);
             parsed.setRawDescription(rawDesc.isBlank() ? null : rawDesc);
