@@ -17,7 +17,8 @@ public class IngestionJobDocument {
         PENDING,
         PROCESSING,
         COMPLETED,
-        FAILED
+        FAILED,
+        DUPLICATED
     }
 
     @Id
@@ -26,6 +27,9 @@ public class IngestionJobDocument {
     @Indexed
     @Field("owner_email")
     private String ownerEmail;
+
+    @Field("file_hash")
+    private String fileHash;
 
     @Field("file_name")
     private String fileName;
@@ -90,6 +94,9 @@ public class IngestionJobDocument {
 
     public String getOwnerEmail() { return ownerEmail; }
     public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
+
+    public String getFileHash() { return fileHash; }
+    public void setFileHash(String fileHash) { this.fileHash = fileHash; }
 
     public String getFileName() { return fileName; }
     public void setFileName(String fileName) { this.fileName = fileName; }

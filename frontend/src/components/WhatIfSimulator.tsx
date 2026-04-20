@@ -11,8 +11,8 @@ export default function WhatIfSimulator({ onClose }: { onClose: () => void }) {
   const currentMonth = '2025-02';
 
   const { data: categories } = useQuery({
-    queryKey: ['category-summary'],
-    queryFn: getCategorySummary,
+    queryKey: ['category-summary', currentMonth],
+    queryFn: () => getCategorySummary(currentMonth),
   });
 
   // Adjustments state

@@ -55,8 +55,8 @@ public class IngestionJobController {
     @GetMapping("/jobs")
     public ResponseEntity<Page<IngestionJobResponse>> listJobs(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
 
         String ownerEmail = jwt.getSubject();
         Page<IngestionJobDocument> jobPage = ingestionJobService.listJobs(ownerEmail, page, size);
@@ -71,7 +71,7 @@ public class IngestionJobController {
     @GetMapping("/jobs/{jobId}")
     public ResponseEntity<IngestionJobResponse> getJob(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable String jobId) {
+            @PathVariable("jobId") String jobId) {
 
         String ownerEmail = jwt.getSubject();
         IngestionJobDocument job = ingestionJobService.getJob(ownerEmail, jobId);

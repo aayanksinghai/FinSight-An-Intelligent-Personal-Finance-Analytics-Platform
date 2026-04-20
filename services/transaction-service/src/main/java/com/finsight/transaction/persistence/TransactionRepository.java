@@ -41,4 +41,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
         @Param("startDate") Instant startDate,
         @Param("endDate") Instant endDate
     );
+
+    boolean existsByContentHash(String contentHash);
+
+    List<Transaction> findByContentHashIn(java.util.Collection<String> contentHashes);
 }

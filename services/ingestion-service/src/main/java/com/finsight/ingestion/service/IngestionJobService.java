@@ -56,19 +56,48 @@ public class IngestionJobService {
      */
     public IngestionJobDocument createJob(String ownerEmail, MultipartFile file) {
         validateFile(file);
+        
+        byte[] fileBytes;
+        try {
+            fileBytes = file.getBytes();
+        } catch (java.io.IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read file");
+        }
+        
+        String fileHash = org.springframework.util.DigestUtils.md5DigestAsHex(fileBytes);
+        String cleanEmail = ownerEmail.trim().toLowerCase(Locale.ROOT);
+
+        if (jobRepository.existsByOwnerEmailAndFileHashAndStatusIn(
+                cleanEmail, fileHash, List.of(IngestionJobDocument.Status.COMPLETED, IngestionJobDocument.Status.DUPLICATED))) {
+            
+            IngestionJobDocument job = IngestionJobDocument.create(
+                cleanEmail,
+                file.getOriginalFilename(),
+                file.getSize(),
+                file.getContentType()
+            );
+            job.setFileHash(fileHash);
+            job.setStatus(IngestionJobDocument.Status.DUPLICATED);
+            job.setCompletedAt(Instant.now());
+            job.setErrorMessage("Statement is a duplicate of a previously uploaded file.");
+            job = jobRepository.save(job);
+            log.info("Duplicate ingestion job skipped: jobId={} fileHash={}", job.getId(), fileHash);
+            return job;
+        }
 
         IngestionJobDocument job = IngestionJobDocument.create(
-            ownerEmail.trim().toLowerCase(Locale.ROOT),
+            cleanEmail,
             file.getOriginalFilename(),
             file.getSize(),
             file.getContentType()
         );
+        job.setFileHash(fileHash);
         job = jobRepository.save(job);
         log.info("Ingestion job created: jobId={} owner={} file={} size={}",
             job.getId(), ownerEmail, file.getOriginalFilename(), file.getSize());
 
-        // Kick off async parse — does not block the HTTP response
-        processAsync(job.getId(), ownerEmail, file);
+        // Kick off async parse natively using memory byte array
+        processAsync(job.getId(), ownerEmail, fileBytes, file.getOriginalFilename(), file.getContentType());
         return job;
     }
 
@@ -77,7 +106,7 @@ public class IngestionJobService {
      * Updates job status to PROCESSING → COMPLETED | FAILED.
      */
     @Async("ingestionExecutor")
-    public void processAsync(String jobId, String ownerEmail, MultipartFile file) {
+    public void processAsync(String jobId, String ownerEmail, byte[] fileBytes, String fileName, String contentType) {
         IngestionJobDocument job = jobRepository.findById(jobId).orElse(null);
         if (job == null) {
             log.error("Job not found for async processing: {}", jobId);
@@ -89,16 +118,53 @@ public class IngestionJobService {
         jobRepository.save(job);
 
         try {
-            ParseResult result = parseFile(file);
+            ParseResult result = parseFile(fileBytes, fileName, contentType);
 
             job.setDetectedBank(result.getDetectedBank());
             job.setRowsTotal(result.getTotalRowsAttempted());
 
             List<ParsedRow> rows = result.getRows();
-            int published = 0;
-            String fileName = file.getOriginalFilename();
-
+            
+            java.util.List<String> hashes = new java.util.ArrayList<>();
             for (ParsedRow row : rows) {
+                java.math.BigDecimal amt = row.getDebitAmount() != null ? row.getDebitAmount() : row.getCreditAmount();
+                String type = row.getDebitAmount() != null ? "DEBIT" : (row.getCreditAmount() != null ? "CREDIT" : "");
+                String hash = com.finsight.ingestion.util.TransactionHashUtil.generateHash(
+                    ownerEmail,
+                    row.getOccurredAt(),
+                    amt,
+                    type,
+                    row.getRawDescription()
+                );
+                hashes.add(hash);
+            }
+
+            java.util.Set<String> dupesSet = new java.util.HashSet<>();
+            if (!hashes.isEmpty()) {
+                try {
+                    org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+                    String url = "http://transaction-service:8083/api/internal/transactions/check-duplicates";
+                    String[] existingDupes = restTemplate.postForObject(url, hashes, String[].class);
+                    if (existingDupes != null) {
+                        dupesSet.addAll(java.util.Arrays.asList(existingDupes));
+                    }
+                } catch (Exception ex) {
+                    log.warn("Failed to check duplicates with transaction-service: {}", ex.getMessage());
+                }
+            }
+
+            int published = 0;
+            java.util.Set<String> localSeen = new java.util.HashSet<>();
+
+            for (int i = 0; i < rows.size(); i++) {
+                ParsedRow row = rows.get(i);
+                String hash = hashes.get(i);
+                
+                if (dupesSet.contains(hash) || localSeen.contains(hash)) {
+                    continue;
+                }
+                localSeen.add(hash);
+
                 TransactionIngestedEvent event = TransactionIngestedEvent.of(
                     ownerEmail.trim().toLowerCase(Locale.ROOT),
                     jobId,
@@ -171,22 +237,22 @@ public class IngestionJobService {
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
-    private ParseResult parseFile(MultipartFile file) throws Exception {
-        String name = (file.getOriginalFilename() != null ? file.getOriginalFilename() : "").toLowerCase(Locale.ROOT);
-        String contentType = file.getContentType() != null ? file.getContentType().toLowerCase(Locale.ROOT) : "";
+    private ParseResult parseFile(byte[] fileBytes, String originalFilename, String mimeType) throws Exception {
+        String name = (originalFilename != null ? originalFilename : "").toLowerCase(Locale.ROOT);
+        String contentType = mimeType != null ? mimeType.toLowerCase(Locale.ROOT) : "";
 
-        try (InputStream in = file.getInputStream()) {
+        try (InputStream in = new java.io.ByteArrayInputStream(fileBytes)) {
             if (name.endsWith(".pdf") || contentType.contains("pdf")) {
-                return pdfParser.parse(in, file.getOriginalFilename());
+                return pdfParser.parse(in, originalFilename);
             }
             if (name.endsWith(".xlsx") || contentType.contains("spreadsheetml")) {
-                return xlsxParser.parse(in, file.getOriginalFilename(), false);
+                return xlsxParser.parse(in, originalFilename, false);
             }
             if (name.endsWith(".xls") || contentType.contains("ms-excel")) {
-                return xlsxParser.parse(in, file.getOriginalFilename(), true);
+                return xlsxParser.parse(in, originalFilename, true);
             }
             // Default: CSV
-            return csvParser.parse(in, file.getOriginalFilename());
+            return csvParser.parse(in, originalFilename);
         }
     }
 

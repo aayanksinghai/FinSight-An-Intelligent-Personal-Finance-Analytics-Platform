@@ -13,6 +13,9 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "content_hash", unique = true, length = 64)
+    private String contentHash;
+
     @Column(name = "owner_email", nullable = false)
     private String ownerEmail;
 
@@ -78,6 +81,8 @@ public class Transaction {
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
+    public String getContentHash() { return contentHash; }
+    public void setContentHash(String contentHash) { this.contentHash = contentHash; }
     public String getOwnerEmail() { return ownerEmail; }
     public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
     public UUID getAccountId() { return accountId; }

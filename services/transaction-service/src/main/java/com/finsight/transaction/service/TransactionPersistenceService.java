@@ -5,14 +5,19 @@ import com.finsight.transaction.domain.Transaction;
 import com.finsight.transaction.event.TransactionIngestedEvent;
 import com.finsight.transaction.persistence.CategoryRepository;
 import com.finsight.transaction.persistence.TransactionRepository;
+import com.finsight.transaction.util.TransactionHashUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Service
 public class TransactionPersistenceService {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionPersistenceService.class);
 
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
@@ -24,11 +29,30 @@ public class TransactionPersistenceService {
 
     @Transactional
     public Transaction saveIngestedTransaction(TransactionIngestedEvent event) {
+        
+        // Use either debit or credit amount for the hash
+        java.math.BigDecimal amt = event.debitAmount() != null ? event.debitAmount() : event.creditAmount();
+        String type = event.debitAmount() != null ? "DEBIT" : (event.creditAmount() != null ? "CREDIT" : "");
+        
+        String hash = TransactionHashUtil.generateHash(
+            event.ownerEmail(), 
+            event.occurredAt(), 
+            amt, 
+            type, 
+            event.rawDescription()
+        );
+
+        if (transactionRepository.existsByContentHash(hash)) {
+            log.info("Duplicate transaction detected for {} [Hash: {}]. Skipping save.", event.ownerEmail(), hash);
+            return null; // Signals consumer it was a duplicate and should just skip
+        }
+
         Category defaultCategory = categoryRepository.findByNameIgnoreCase("Uncategorized")
             .orElse(null);
 
         Transaction txn = new Transaction();
         txn.setId(UUID.randomUUID());
+        txn.setContentHash(hash);
         txn.setOwnerEmail(event.ownerEmail());
         txn.setJobId(event.jobId());
         txn.setSourceFileName(event.sourceFileName());

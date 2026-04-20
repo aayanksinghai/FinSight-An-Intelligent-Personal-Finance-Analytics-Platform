@@ -13,6 +13,7 @@ function StatusBadge({ status }: { status: IngestionJobResponse['status'] }) {
     PROCESSING: 'badge badge-blue animate-pulse-slow',
     COMPLETED:  'badge badge-green',
     FAILED:     'badge badge-red',
+    DUPLICATED: 'badge bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20',
   };
   return <span className={config[status] ?? 'badge'}>{status}</span>;
 }
@@ -42,6 +43,8 @@ function LiveJobRow({ job }: { job: IngestionJobResponse }) {
       <td className="text-right tabular-nums text-sm">
         {display.status === 'COMPLETED' ? (
           <span className="text-success">{display.rowsParsed.toLocaleString()}</span>
+        ) : display.status === 'DUPLICATED' ? (
+          <span className="text-[#f59e0b]">Skipped</span>
         ) : display.status === 'PROCESSING' ? (
           <span className="flex items-center justify-end gap-1.5 text-brand">
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand" />

@@ -33,16 +33,34 @@ export async function getTransactions(
   return data;
 }
 
-export async function getTransactionSummary(): Promise<TransactionSummary[]> {
+export async function getTransactionSummary(monthYear?: string): Promise<TransactionSummary[]> {
+  const params: Record<string, string> = {};
+  if (monthYear) {
+    const year = parseInt(monthYear.split('-')[0]);
+    const month = parseInt(monthYear.split('-')[1]);
+    const fromDate = new Date(Date.UTC(year, month - 1, 1));
+    const toDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+    params.from = fromDate.toISOString();
+    params.to = toDate.toISOString();
+  }
   const { data } = await apiClient.get<TransactionSummary[]>(
-    '/api/transactions/summary'
+    '/api/transactions/summary', { params }
   );
   return data;
 }
 
-export async function getCategorySummary(): Promise<CategorySummary[]> {
+export async function getCategorySummary(monthYear?: string): Promise<CategorySummary[]> {
+  const params: Record<string, string> = {};
+  if (monthYear) {
+    const year = parseInt(monthYear.split('-')[0]);
+    const month = parseInt(monthYear.split('-')[1]);
+    const fromDate = new Date(Date.UTC(year, month - 1, 1));
+    const toDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+    params.from = fromDate.toISOString();
+    params.to = toDate.toISOString();
+  }
   const { data } = await apiClient.get<CategorySummary[]>(
-    '/api/transactions/categories'
+    '/api/transactions/categories', { params }
   );
   return data;
 }

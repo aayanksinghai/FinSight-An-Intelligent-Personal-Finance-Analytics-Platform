@@ -29,8 +29,8 @@ public class AdminIngestionJobController {
     @GetMapping("/jobs")
     public ResponseEntity<Page<IngestionJobResponse>> listAllJobs(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size) {
         requireAdmin(jwt);
         Page<IngestionJobDocument> jobPage = ingestionJobService.listAllJobs(page, size);
         return ResponseEntity.ok(jobPage.map(IngestionJobResponse::from));

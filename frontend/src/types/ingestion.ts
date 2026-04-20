@@ -6,7 +6,7 @@ export interface IngestionJobResponse {
   fileName: string;
   fileSizeBytes: number;
   contentType: string;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'DUPLICATED';
   detectedBank: string | null;
   rowsParsed: number;
   rowsTotal: number;

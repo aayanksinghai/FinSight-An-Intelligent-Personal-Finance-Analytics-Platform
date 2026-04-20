@@ -39,14 +39,13 @@ export default function DashboardPage() {
   const userEmail = useAuthStore((s) => s.userEmail);
   const [showSimulator, setShowSimulator] = useState(false);
 
+  const [currentMonth, setCurrentMonth] = useState('2025-02');
+
   const { data: summaryData, isLoading: summaryLoading } = useQuery({
-    queryKey: ['transaction-summary'],
-    queryFn: () => getTransactionSummary(),
+    queryKey: ['transaction-summary', currentMonth],
+    queryFn: () => getTransactionSummary(currentMonth),
     refetchInterval: 10000,
   });
-
-  // Use 2025-02 specifically as the anchor month for the sample dataset
-  const currentMonth = '2025-02';
 
   const { data: budgetData } = useQuery({
     queryKey: ['budgets', currentMonth],
@@ -61,8 +60,8 @@ export default function DashboardPage() {
   });
 
   const { data: categoryData, isLoading: categoryLoading } = useQuery({
-    queryKey: ['category-summary'],
-    queryFn: () => getCategorySummary(),
+    queryKey: ['category-summary', currentMonth],
+    queryFn: () => getCategorySummary(currentMonth),
     refetchInterval: 10000,
   });
 
@@ -118,9 +117,17 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-[#edf2ff]">
             Welcome back, {userEmail ? userEmail.split('@')[0] : 'User'}
           </h1>
-          <p className="mt-0.5 text-sm text-muted">
-            Here's your financial overview.
-          </p>
+          <div className="mt-2 flex items-center gap-4">
+            <input 
+              type="month" 
+              value={currentMonth} 
+              onChange={(e) => setCurrentMonth(e.target.value)}
+              className="rounded-lg border-0 bg-brand/10 px-3 py-1.5 text-sm font-semibold text-brand outline-none focus:ring-2 focus:ring-brand/50"
+            />
+            <p className="text-sm text-muted">
+              Here's your financial overview.
+            </p>
+          </div>
         </div>
         {/* What-If Simulator Toggle */}
         <button
