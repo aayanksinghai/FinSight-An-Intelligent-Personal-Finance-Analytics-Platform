@@ -45,4 +45,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
     boolean existsByContentHash(String contentHash);
 
     List<Transaction> findByContentHashIn(java.util.Collection<String> contentHashes);
+    
+    void deleteByOwnerEmail(String ownerEmail);
 }

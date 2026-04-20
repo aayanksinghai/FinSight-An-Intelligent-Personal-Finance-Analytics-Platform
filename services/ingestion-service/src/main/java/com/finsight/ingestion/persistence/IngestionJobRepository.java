@@ -12,5 +12,7 @@ public interface IngestionJobRepository extends MongoRepository<IngestionJobDocu
     /** Single job owned by a specific user (prevents cross-user access). */
     java.util.Optional<IngestionJobDocument> findByIdAndOwnerEmail(String id, String ownerEmail);
 
+    void deleteByOwnerEmail(String ownerEmail);
+
     boolean existsByOwnerEmailAndFileHashAndStatusIn(String ownerEmail, String fileHash, java.util.Collection<IngestionJobDocument.Status> statuses);
 }

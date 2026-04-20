@@ -10,4 +10,6 @@ public interface NotificationPreferenceRepository
         extends JpaRepository<NotificationPreference, NotificationPreferenceId> {
 
     List<NotificationPreference> findByOwnerEmail(String ownerEmail);
+
+    void deleteByOwnerEmail(String ownerEmail);
 }

@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface ChatSessionRepository extends JpaRepository<ChatSession, UUID> {
     List<ChatSession> findByOwnerEmailOrderByCreatedAtDesc(String ownerEmail);
     Optional<ChatSession> findByIdAndOwnerEmail(UUID id, String ownerEmail);
+    void deleteByOwnerEmail(String ownerEmail);
 }

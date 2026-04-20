@@ -5,6 +5,7 @@ import com.finsight.user.api.profile.UserProfileResponse;
 import com.finsight.user.api.profile.UserSecurityResponse;
 import com.finsight.user.persistence.UserCredential;
 import com.finsight.user.persistence.UserCredentialRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +15,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserProfileService {
 
     private final UserCredentialRepository userCredentialRepository;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public UserProfileService(UserCredentialRepository userCredentialRepository) {
+    public UserProfileService(UserCredentialRepository userCredentialRepository,
+                              KafkaTemplate<String, String> kafkaTemplate) {
         this.userCredentialRepository = userCredentialRepository;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Transactional(readOnly = true)
@@ -53,10 +57,14 @@ public class UserProfileService {
 
     @Transactional
     public void deleteAccount(String email) {
-        long deleted = userCredentialRepository.deleteByEmail(normalizeEmail(email));
+        String normalizedEmail = normalizeEmail(email);
+        long deleted = userCredentialRepository.deleteByEmail(normalizedEmail);
         if (deleted == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
+        kafkaTemplate.send("user.events", normalizedEmail,
+            String.format("{\"eventType\":\"user.deleted\",\"email\":\"%s\"}", normalizedEmail)
+        );
     }
 
     private UserCredential requireUser(String email) {

@@ -15,6 +15,8 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
     long countByOwnerEmailInAndIsRead(List<String> ownerEmails, boolean isRead);
 
+    void deleteByOwnerEmail(String ownerEmail);
+
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.ownerEmail = :ownerEmail OR n.ownerEmail = 'ALL'")
     void markAllAsReadForUser(@Param("ownerEmail") String ownerEmail);

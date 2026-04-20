@@ -14,4 +14,6 @@ public interface BudgetRepository extends JpaRepository<Budget, UUID> {
     List<Budget> findByOwnerEmailAndMonthYear(String ownerEmail, String monthYear);
     
     Optional<Budget> findByOwnerEmailAndCategoryIdAndMonthYear(String ownerEmail, String categoryId, String monthYear);
+    
+    void deleteByOwnerEmail(String ownerEmail);
 }

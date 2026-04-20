@@ -1,6 +1,10 @@
-import { create } from 'zustand';
-import { clearStoredTokens, getStoredTokens, setStoredTokens } from './tokenStore';
-import { decodeJwtPayload } from '../utils/jwt';
+import { create } from "zustand";
+import {
+  clearStoredTokens,
+  getStoredTokens,
+  setStoredTokens,
+} from "./tokenStore";
+import { decodeJwtPayload } from "../utils/jwt";
 
 interface AuthState {
   accessToken: string | null;
@@ -9,13 +13,13 @@ interface AuthState {
   role: string | null;
   isAuthenticated: boolean;
   setSession: (accessToken: string, refreshToken: string) => void;
-  clearSession: () => void;
+  logout: () => void;
 }
 
 function buildAuthState(
   accessToken: string | null,
   refreshToken: string | null,
-): Omit<AuthState, 'setSession' | 'clearSession'> {
+): Omit<AuthState, "setSession" | "logout"> {
   const payload = decodeJwtPayload(accessToken);
   return {
     accessToken,
@@ -36,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set(buildAuthState(accessToken, refreshToken));
   },
 
-  clearSession: () => {
+  logout: () => {
     clearStoredTokens();
     set(buildAuthState(null, null));
   },

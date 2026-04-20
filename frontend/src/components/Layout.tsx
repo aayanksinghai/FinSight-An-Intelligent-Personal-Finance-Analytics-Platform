@@ -1,92 +1,178 @@
-import type { ReactNode } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-import { logout } from '../api/authApi';
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getNotifications, markAsRead, markAllAsRead, type Notification } from '../api/notificationApi';
-import { useStompClient } from '../hooks/useStompClient';
-import toast from 'react-hot-toast';
+import type { ReactNode } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
+import { logout } from "../api/authApi";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+  type Notification,
+} from "../api/notificationApi";
+import { useStompClient } from "../hooks/useStompClient";
+import toast from "react-hot-toast";
 
 // ─── Nav icons (inline SVGs — no icon package needed) ───────────────────────
 
 function IconBell() {
   return (
-    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    <svg
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+      />
     </svg>
   );
 }
 
 function IconDashboard() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+      />
     </svg>
   );
 }
 
 function IconUpload() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+      />
     </svg>
   );
 }
 
 function IconProfile() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+      />
     </svg>
   );
 }
 
 function IconAdmin() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+      />
     </svg>
   );
 }
 
 function IconLogout() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+      />
     </svg>
   );
 }
 
 function IconBudget() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
     </svg>
   );
 }
 
 function IconTransactions() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+      />
     </svg>
   );
 }
 
 function IconChat() {
   return (
-    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    <svg
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      />
     </svg>
   );
 }
@@ -98,23 +184,23 @@ function NotificationInbox() {
   const queryClient = useQueryClient();
 
   const { data: notifications = [] } = useQuery({
-    queryKey: ['notifications'],
+    queryKey: ["notifications"],
     queryFn: getNotifications,
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Setup WebSocket Listener
   useStompClient((notif) => {
     // Show Toast
-    if (notif.type.includes('EXCEEDED') || notif.type.includes('ANOMALY')) {
+    if (notif.type.includes("EXCEEDED") || notif.type.includes("ANOMALY")) {
       toast.error(notif.message);
     } else {
-      toast(notif.message, { icon: '⚠️' });
+      toast(notif.message, { icon: "⚠️" });
     }
-    
+
     // Update Inbox Query dynamically
-    queryClient.setQueryData<Notification[]>(['notifications'], (prev) => {
+    queryClient.setQueryData<Notification[]>(["notifications"], (prev) => {
       if (!prev) return [notif];
       return [notif, ...prev];
     });
@@ -123,34 +209,34 @@ function NotificationInbox() {
   const markReadMutation = useMutation({
     mutationFn: (id: string) => markAsRead(id),
     onSuccess: (_, id) => {
-      queryClient.setQueryData<Notification[]>(['notifications'], (prev) =>
-        (prev || []).map(n => n.id === id ? { ...n, read: true } : n)
+      queryClient.setQueryData<Notification[]>(["notifications"], (prev) =>
+        (prev || []).map((n) => (n.id === id ? { ...n, read: true } : n)),
       );
-    }
+    },
   });
 
   const markAllMutation = useMutation({
     mutationFn: markAllAsRead,
     onSuccess: () => {
-      queryClient.setQueryData<Notification[]>(['notifications'], (prev) =>
-        (prev || []).map(n => ({ ...n, read: true }))
+      queryClient.setQueryData<Notification[]>(["notifications"], (prev) =>
+        (prev || []).map((n) => ({ ...n, read: true })),
       );
-    }
+    },
   });
 
   function getIconForType(type: string) {
-    if (type === 'ANOMALY_DETECTED') return '🚨';
-    if (type === 'BUDGET_EXCEEDED') return '🛑';
-    if (type === 'BUDGET_WARNING') return '⚠️';
-    if (type === 'STRESS_SCORE_CHANGE') return '📊';
-    if (type === 'FORECAST_UPDATE') return '📈';
-    if (type === 'ANNOUNCEMENT') return '📢';
-    return '🔔';
+    if (type === "ANOMALY_DETECTED") return "🚨";
+    if (type === "BUDGET_EXCEEDED") return "🛑";
+    if (type === "BUDGET_WARNING") return "⚠️";
+    if (type === "STRESS_SCORE_CHANGE") return "📊";
+    if (type === "FORECAST_UPDATE") return "📈";
+    if (type === "ANNOUNCEMENT") return "📢";
+    return "🔔";
   }
 
   return (
     <div className="relative">
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-full hover:bg-white/5 transition-colors text-muted hover:text-white"
         title="Notifications"
@@ -163,12 +249,17 @@ function NotificationInbox() {
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setIsOpen(false)}
+          />
           <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto glass-card z-50 p-0 flex flex-col shadow-2xl border border-white/10 origin-top-right animate-scale-in">
             <div className="p-3 border-b border-white/5 flex justify-between items-center sticky top-0 bg-brand-dark/95 backdrop-blur-md">
-              <h3 className="font-semibold text-[#edf2ff] text-sm">Notifications</h3>
+              <h3 className="font-semibold text-[#edf2ff] text-sm">
+                Notifications
+              </h3>
               {unreadCount > 0 && (
-                <button 
+                <button
                   onClick={() => markAllMutation.mutate()}
                   className="text-[11px] text-brand hover:text-brand-light"
                 >
@@ -183,22 +274,28 @@ function NotificationInbox() {
               </div>
             ) : (
               <div className="flex flex-col">
-                {notifications.slice(0, 5).map(n => (
-                  <div 
-                    key={n.id} 
-                    className={`p-3 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors cursor-pointer flex gap-3 ${!n.read ? 'bg-white/[0.04]' : ''}`}
+                {notifications.slice(0, 5).map((n) => (
+                  <div
+                    key={n.id}
+                    className={`p-3 border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors cursor-pointer flex gap-3 ${!n.read ? "bg-white/[0.04]" : ""}`}
                     onClick={() => {
                       if (!n.read) markReadMutation.mutate(n.id);
                     }}
                   >
-                    <div className="text-xl mt-0.5">{getIconForType(n.type)}</div>
+                    <div className="text-xl mt-0.5">
+                      {getIconForType(n.type)}
+                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex justify-between">
-                        <p className={`text-[10px] uppercase font-bold tracking-wider ${!n.read ? 'text-brand' : 'text-muted'}`}>
-                          {n.title || n.type.replace(/_/g, ' ')}
+                        <p
+                          className={`text-[10px] uppercase font-bold tracking-wider ${!n.read ? "text-brand" : "text-muted"}`}
+                        >
+                          {n.title || n.type.replace(/_/g, " ")}
                         </p>
                       </div>
-                      <p className={`text-xs mt-0.5 line-clamp-2 ${!n.read ? 'text-[#edf2ff] font-medium' : 'text-muted'}`}>
+                      <p
+                        className={`text-xs mt-0.5 line-clamp-2 ${!n.read ? "text-[#edf2ff] font-medium" : "text-muted"}`}
+                      >
                         {n.message}
                       </p>
                       <p className="text-[9px] text-muted mt-1 opacity-70 italic">
@@ -214,8 +311,8 @@ function NotificationInbox() {
                 ))}
               </div>
             )}
-            <NavLink 
-              to="/notifications" 
+            <NavLink
+              to="/notifications"
               onClick={() => setIsOpen(false)}
               className="p-3 text-center text-xs font-semibold text-brand hover:bg-white/5 border-t border-white/5"
             >
@@ -234,7 +331,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
-  const { role, userEmail, clearSession } = useAuthStore();
+  const { role, userEmail, logout: logoutFromStore } = useAuthStore();
 
   async function handleSignOut() {
     try {
@@ -242,14 +339,12 @@ export default function Layout({ children }: LayoutProps) {
     } catch {
       // Ignore API errors — clear local auth state regardless.
     } finally {
-      clearSession();
-      navigate('/login');
+      logoutFromStore();
+      navigate("/login");
     }
   }
 
-  const initials = userEmail
-    ? userEmail.slice(0, 2).toUpperCase()
-    : '??';
+  const initials = userEmail ? userEmail.slice(0, 2).toUpperCase() : "??";
 
   return (
     <div className="flex min-h-screen gap-0">
@@ -275,7 +370,7 @@ export default function Layout({ children }: LayoutProps) {
               to="/"
               end
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
+                `nav-link ${isActive ? "active" : ""}`
               }
             >
               <IconDashboard />
@@ -285,7 +380,7 @@ export default function Layout({ children }: LayoutProps) {
             <NavLink
               to="/transactions"
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
+                `nav-link ${isActive ? "active" : ""}`
               }
             >
               <IconTransactions />
@@ -295,7 +390,7 @@ export default function Layout({ children }: LayoutProps) {
             <NavLink
               to="/budgets"
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
+                `nav-link ${isActive ? "active" : ""}`
               }
             >
               <IconBudget />
@@ -305,7 +400,7 @@ export default function Layout({ children }: LayoutProps) {
             <NavLink
               to="/upload"
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
+                `nav-link ${isActive ? "active" : ""}`
               }
             >
               <IconUpload />
@@ -315,7 +410,7 @@ export default function Layout({ children }: LayoutProps) {
             <NavLink
               to="/chat"
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
+                `nav-link ${isActive ? "active" : ""}`
               }
             >
               <IconChat />
@@ -325,7 +420,7 @@ export default function Layout({ children }: LayoutProps) {
             <NavLink
               to="/notifications"
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
+                `nav-link ${isActive ? "active" : ""}`
               }
             >
               <IconBell />
@@ -335,18 +430,18 @@ export default function Layout({ children }: LayoutProps) {
             <NavLink
               to="/profile"
               className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
+                `nav-link ${isActive ? "active" : ""}`
               }
             >
               <IconProfile />
               Profile
             </NavLink>
 
-            {role === 'ADMIN' && (
+            {role === "ADMIN" && (
               <NavLink
                 to="/admin"
                 className={({ isActive }) =>
-                  `nav-link ${isActive ? 'active' : ''}`
+                  `nav-link ${isActive ? "active" : ""}`
                 }
               >
                 <IconAdmin />
@@ -365,8 +460,10 @@ export default function Layout({ children }: LayoutProps) {
                 {initials}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-xs font-medium text-[#edf2ff]">{userEmail}</p>
-                <p className="text-[10px] text-muted">{role ?? 'USER'}</p>
+                <p className="truncate text-xs font-medium text-[#edf2ff]">
+                  {userEmail}
+                </p>
+                <p className="text-[10px] text-muted">{role ?? "USER"}</p>
               </div>
             </div>
           </div>
@@ -390,9 +487,7 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto flex-1 pb-32">
-          {children}
-        </div>
+        <div className="p-6 overflow-y-auto flex-1 pb-32">{children}</div>
       </main>
     </div>
   );

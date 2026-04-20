@@ -53,5 +53,3 @@ management:
   endpoint:
     health:
       show-details: always
-
-security: true
