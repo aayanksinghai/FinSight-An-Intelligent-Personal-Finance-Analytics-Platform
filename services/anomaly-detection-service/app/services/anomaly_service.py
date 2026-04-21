@@ -22,7 +22,8 @@ class AnomalyService:
         # 3. Pass through LSTMAutoencoder
         # 4. Compare reconstruction error vs baseline threshold
         
-        amount = float(transaction.get("debitAmount", 0.0))
+        amount_val = transaction.get("debitAmount")
+        amount = float(amount_val) if amount_val is not None else 0.0
         is_anomalous = False
         explanation = ""
         score = 0.0

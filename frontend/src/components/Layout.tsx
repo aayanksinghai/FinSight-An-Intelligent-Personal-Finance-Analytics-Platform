@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { logout } from "../api/authApi";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getNotifications,
@@ -192,6 +192,22 @@ function NotificationInbox() {
 
   // Setup WebSocket Listener
   useStompClient((notif) => {
+    // Prevent duplicate toasts on window focus/reconnects/refreshes
+    const SEEN_KEY = "seen_notifs";
+    try {
+      const seen = new Set(
+        JSON.parse(sessionStorage.getItem(SEEN_KEY) || "[]"),
+      );
+      if (seen.has(notif.id)) return;
+      seen.add(notif.id);
+      sessionStorage.setItem(
+        SEEN_KEY,
+        JSON.stringify(Array.from(seen).splice(-100)),
+      );
+    } catch (e) {
+      // ignore parsing errors
+    }
+
     // Show Toast
     if (notif.type.includes("EXCEEDED") || notif.type.includes("ANOMALY")) {
       toast.error(notif.message);

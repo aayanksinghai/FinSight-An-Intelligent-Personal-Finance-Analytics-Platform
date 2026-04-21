@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { getStoredTokens } from '../store/tokenStore';
 import type { Notification } from '../api/notificationApi';
@@ -34,22 +33,9 @@ export function useStompClient(onNotification?: (notification: Notification) => 
       if (message.body) {
         const payload = JSON.parse(message.body) as Notification;
         
-        // Universal real-time toast
-        const isError = payload.type.includes('EXCEEDED') || payload.type.includes('ANOMALY');
-        const title = payload.title || (isError ? 'Alert' : 'Notice');
         
-        toast(
-          `${title}: ${payload.message}`,
-          {
-            icon: isError ? '🚨' : '🔔',
-            style: {
-              background: '#1F2937',
-              color: '#F9FAFB',
-              border: '1px solid #374151',
-            },
-          }
-        );
-
+        
+        
         if (onNotification) {
           onNotification(payload);
         }
