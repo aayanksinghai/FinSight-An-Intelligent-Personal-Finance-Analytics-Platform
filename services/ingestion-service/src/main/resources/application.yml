@@ -44,3 +44,10 @@ management:
     health:
       probes:
         enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.finsight: DEBUG
+  logstash:
+    host: ${LOGSTASH_HOST:}

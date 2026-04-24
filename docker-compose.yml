@@ -53,6 +53,51 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+      - cluster.routing.allocation.disk.watermark.flood_stage=99%
+      - cluster.routing.allocation.disk.watermark.high=98%
+      - cluster.routing.allocation.disk.watermark.low=95%
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.1
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./elk/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./elk/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
   api-gateway:
     image: aayanksinghai/finsight-api-gateway:latest
     build:
@@ -62,12 +107,15 @@ services:
     environment:
       JWT_ISSUER: ${JWT_ISSUER}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - user-service
       - transaction-service
       - budget-service
       - ingestion-service
       - notification-service
+      - logstash
 
   user-service:
     image: aayanksinghai/finsight-user-service:latest
@@ -85,14 +133,16 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      SPRING_FLYWAY_VERSION: "0"
       SPRING_FLYWAY_TABLE: "flyway_schema_history_user"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - postgres
       - redis
       - kafka
+      - logstash
 
   transaction-service:
     image: aayanksinghai/finsight-transaction-service:latest
@@ -108,14 +158,16 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      SPRING_FLYWAY_VERSION: "0"
       SPRING_FLYWAY_TABLE: "flyway_schema_history_transaction"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - postgres
       - redis
       - kafka
+      - logstash
 
   budget-service:
     image: aayanksinghai/finsight-budget-service:latest
@@ -131,14 +183,16 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      SPRING_FLYWAY_VERSION: "0"
       SPRING_FLYWAY_TABLE: "flyway_schema_history_budget"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - postgres
       - redis
       - kafka
+      - logstash
 
   ingestion-service:
     image: aayanksinghai/finsight-ingestion-service:latest
@@ -149,9 +203,12 @@ services:
       SPRING_DATA_MONGODB_URI: ${MONGODB_URI}
       JWT_ISSUER: ${JWT_ISSUER}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - kafka
       - mongodb
+      - logstash
 
   notification-service:
     image: aayanksinghai/finsight-notification-service:latest
@@ -166,13 +223,15 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      SPRING_FLYWAY_VERSION: "0"
       SPRING_FLYWAY_TABLE: "flyway_schema_history_notification"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - postgres
       - kafka
+      - logstash
 
   admin-service:
     image: aayanksinghai/finsight-admin-service:latest
@@ -189,13 +248,15 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      SPRING_FLYWAY_VERSION: "0"
       SPRING_FLYWAY_TABLE: "flyway_schema_history_admin"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - postgres
       - kafka
+      - logstash
 
   categorization-service:
     image: aayanksinghai/finsight-categorization-service:latest
@@ -203,6 +264,7 @@ services:
       context: ./services/categorization-service
     environment:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - kafka
 
@@ -233,12 +295,14 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
       SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
       SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
-      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      SPRING_FLYWAY_VERSION: "0"
       SPRING_FLYWAY_TABLE: "flyway_schema_history_chat"
       SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+      LOGSTASH_HOST: logstash
+      JAVA_TOOL_OPTIONS: "-Xmx256m -Xms256m"
     depends_on:
       - kafka
+      - logstash
 
   forecasting-service:
     image: aayanksinghai/finsight-forecasting-service:latest
@@ -271,3 +335,4 @@ volumes:
   redis_data:
   postgres_data:
   mongodb_data:
+  elasticsearch_data:

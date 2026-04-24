@@ -1,0 +1,9 @@
+server.host: "0.0.0.0"
+server.name: "finsight-kibana"
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# Allow Kibana to connect to Elasticsearch without security (development)
+xpack.security.enabled: false
+
+# telemetry off
+telemetry.enabled: false

@@ -1,0 +1,13 @@
+http.host: "0.0.0.0"
+http.port: 9600
+
+# Increase pipeline workers for better throughput
+pipeline.workers: 2
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+# Dead letter queue for failed events (optional)
+dead_letter_queue.enable: false
+
+# Log level for Logstash itself
+log.level: info
