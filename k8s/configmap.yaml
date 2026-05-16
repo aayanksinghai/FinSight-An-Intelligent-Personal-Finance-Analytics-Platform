@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: finsight-config
+  namespace: finsight
+data:
+  # Spring Boot general
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+  SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+  SPRING_FLYWAY_REPAIR_ON_MIGRATE: "true"
+  SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+  SPRING_FLYWAY_BASELINE_VERSION: "0"
+  JAVA_TOOL_OPTIONS: "-Xmx384m -Xms256m"
+
+  # Internal service URLs (Kubernetes DNS)
+  TRANSACTION_SERVICE_URL: "http://transaction-service:8083"
+  BUDGET_SERVICE_URL: "http://budget-service:8084"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:8086"
+
+  # ELK
+  LOGSTASH_HOST: "logstash"
+
+  # Infrastructure addresses
+  SPRING_DATA_REDIS_HOST: "redis"
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_BROKERS: "kafka:9092"

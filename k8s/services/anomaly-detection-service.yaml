@@ -1,0 +1,89 @@
+---
+# ── Anomaly Detection Service (Python/FastAPI) ────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anomaly-detection-service
+  namespace: finsight
+  labels:
+    app: anomaly-detection-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: anomaly-detection-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: anomaly-detection-service
+    spec:
+      containers:
+        - name: anomaly-detection-service
+          image: aayanksinghai/finsight-anomaly-detection-service:latest
+          ports:
+            - containerPort: 8089
+          env:
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: finsight-config
+                  key: KAFKA_BROKERS
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8089
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8089
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "512Mi"     # LSTM models need more RAM
+              cpu: "300m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: anomaly-detection-service
+  namespace: finsight
+spec:
+  selector:
+    app: anomaly-detection-service
+  ports:
+    - port: 8089
+      targetPort: 8089
+---
+# ── HPA: Anomaly Detection Service ──────────────────────────────────────────
+# Scales from 2 → 8 replicas when CPU utilization exceeds 70%.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: anomaly-detection-service-hpa
+  namespace: finsight
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: anomaly-detection-service
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

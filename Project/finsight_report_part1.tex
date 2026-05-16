@@ -1,0 +1,430 @@
+\documentclass[12pt,a4paper]{report}
+
+%% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{fontenc}
+\usepackage{inputenc}
+\usepackage{microtype}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\tcbuselibrary{skins,breakable}
+
+%% ── Colors ────────────────────────────────────────────────────────────────────
+\definecolor{primary}{HTML}{1E3A5F}
+\definecolor{accent}{HTML}{2563EB}
+\definecolor{lightblue}{HTML}{EFF6FF}
+\definecolor{success}{HTML}{059669}
+\definecolor{warning}{HTML}{D97706}
+\definecolor{codeblue}{HTML}{0369A1}
+\definecolor{codegray}{HTML}{F1F5F9}
+\definecolor{codered}{HTML}{BE123C}
+\definecolor{dockerblue}{HTML}{0DB7ED}
+\definecolor{kafkaorange}{HTML}{E87722}
+\definecolor{k8sblue}{HTML}{326CE5}
+\definecolor{vaultgold}{HTML}{FFD700}
+
+%% ── Hyperref Setup ────────────────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true, linkcolor=accent, urlcolor=accent, citecolor=accent,
+  pdftitle={FinSight -- Intelligent Personal Finance Analytics Platform},
+  pdfauthor={Aayank Singh},
+  pdfsubject={SPE Major Project Report}
+}
+
+%% ── Header / Footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{primary}{\textbf{FinSight} -- Intelligent Personal Finance Analytics Platform}}
+\fancyhead[R]{\small\textcolor{primary}{SPE Major Project}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%% ── Section Formatting ────────────────────────────────────────────────────────
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{primary}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries\color{primary}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{accent}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries\color{primary}}{\thesubsubsection}{1em}{}
+
+%% ── Code Listings ─────────────────────────────────────────────────────────────
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codegray},
+  frame=single, framerule=0pt, rulecolor=\color{codegray},
+  breaklines=true, breakatwhitespace=true,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{success}\itshape,
+  stringstyle=\color{codered},
+  numberstyle=\tiny\color{gray},
+  numbers=left, stepnumber=1,
+  tabsize=2, showspaces=false, showstringspaces=false,
+  captionpos=b
+}
+
+%% ── Custom Boxes ──────────────────────────────────────────────────────────────
+\newtcolorbox{infobox}[1][]{
+  enhanced, colback=lightblue, colframe=accent,
+  fonttitle=\bfseries\color{white}, title=#1,
+  boxrule=0.5pt, arc=4pt, left=6pt, right=6pt, top=6pt, bottom=6pt
+}
+\newtcolorbox{techbox}[1][]{
+  enhanced, colback=codegray, colframe=primary,
+  fonttitle=\bfseries\color{white}, title=#1, coltitle=white,
+  boxrule=0.5pt, arc=4pt
+}
+\newtcolorbox{warningbox}[1][]{
+  enhanced, colback=yellow!10, colframe=warning,
+  fonttitle=\bfseries, title=#1,
+  boxrule=0.5pt, arc=4pt
+}
+
+%% ── Document Start ────────────────────────────────────────────────────────────
+\begin{document}
+
+%% ── Title Page ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+
+  {\color{primary}\rule{\linewidth}{1.5pt}}\\[0.4cm]
+  {\Huge\bfseries\color{primary} FinSight}\\[0.3cm]
+  {\Large\color{accent} An Intelligent Personal Finance Analytics Platform}\\[0.2cm]
+  {\large\color{primary} with MLOps-Driven Insights and Cloud-Native DevOps Automation}\\[0.1cm]
+  {\color{primary}\rule{\linewidth}{1.5pt}}\\[1cm]
+
+  \begin{tcolorbox}[enhanced, colback=lightblue, colframe=accent, width=0.85\linewidth, arc=6pt]
+    \centering
+    \textbf{Project Type:} Software and Platform Engineering (SPE) -- Major Project\\[4pt]
+    \textbf{Domain:} Personal Finance $\times$ Machine Learning $\times$ Cloud-Native DevOps
+  \end{tcolorbox}
+
+  \vspace{1.5cm}
+
+  % Screenshot placeholder
+  \begin{tcolorbox}[enhanced, colback=gray!10, colframe=gray!50, width=0.9\linewidth,
+      height=6cm, arc=6pt, valign=center, halign=center]
+    \textcolor{gray!70}{\large\textit{[SCREENSHOT PLACEHOLDER: FinSight Dashboard Overview]}}
+  \end{tcolorbox}
+
+  \vfill
+
+  \begin{tabular}{rl}
+    \textbf{Student:}   & Aayank Singh Bhai \\[4pt]
+    \textbf{Roll No.:}  & \textit{[Roll Number]} \\[4pt]
+    \textbf{Course:}    & B.Tech. -- Computer Science \& Engineering \\[4pt]
+    \textbf{Institute:} & \textit{[Institute Name]} \\[4pt]
+    \textbf{Year:}      & 2025--2026 \\
+  \end{tabular}
+
+  \vspace{1cm}
+  {\color{primary}\rule{\linewidth}{0.8pt}}
+\end{titlepage}
+
+%% ── Table of Contents ─────────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+%% ════════════════════════════════════════════════════════════════════════════
+\chapter{Executive Summary}
+%% ════════════════════════════════════════════════════════════════════════════
+
+\begin{infobox}[Project at a Glance]
+FinSight is a full-stack, production-grade, cloud-native personal finance platform built on a \textbf{polyglot microservices architecture}. It combines Java Spring Boot backend services, Python FastAPI ML services, a React 18 + TypeScript frontend, Apache Kafka for event streaming, HashiCorp Vault for secrets management, and a complete DevOps pipeline powered by Jenkins, Docker, Ansible, and Kubernetes -- all observed through the ELK Stack and Prometheus/Grafana.
+\end{infobox}
+
+FinSight enables users to upload bank statements, automatically parse and categorize transactions using machine learning, detect financial anomalies, forecast future spending, compute a financial stress score, and converse with an AI assistant grounded in their own financial data. The platform operationalizes MLOps best practices including model versioning (MLflow), drift detection, and automated retraining.
+
+Key engineering highlights include:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{18 containerized microservices} (11 Java Spring Boot + 6 Python FastAPI + 1 React/Nginx frontend)
+  \item \textbf{Kubernetes HPA} scaling ML inference pods from 2 to 8 replicas at 70\% CPU utilization
+  \item \textbf{HashiCorp Vault} for zero-plaintext-secret policy across all services
+  \item \textbf{ELK Stack} (Elasticsearch 8.11, Logstash, Kibana) for centralized structured log analytics
+  \item \textbf{Kafka 3.x} event bus decoupling ingestion, categorization, anomaly detection, and notifications
+  \item \textbf{Jenkins CI/CD} with 7-stage pipeline from checkout to Ansible-driven deployment
+  \item \textbf{RS256 JWT} authentication with Google OAuth 2.0 support
+  \item \textbf{Flyway} database migrations for zero-downtime schema evolution
+\end{itemize}
+
+%% ════════════════════════════════════════════════════════════════════════════
+\chapter{Problem Statement}
+%% ════════════════════════════════════════════════════════════════════════════
+
+\section{Domain Context}
+
+Personal finance management in India remains a largely manual and fragmented activity. Most individuals track expenses in spreadsheets, rely on bank statements received months after transactions, and have no proactive mechanism to understand their financial health. The few digital tools available either:
+
+\begin{itemize}[leftmargin=1.5em]
+  \item Apply rigid, rule-based categorization that fails on diverse bank statement formats,
+  \item Offer static monthly summaries without predictive or anomaly-detection capability,
+  \item Treat all users with a uniform behavioral model, ignoring individual spending DNA, or
+  \item Expose user financial data to third-party advertisement networks.
+\end{itemize}
+
+\section{Core Problem}
+
+\begin{tcolorbox}[enhanced, colback=primary!5, colframe=primary, arc=4pt, left=8pt, top=8pt]
+\textbf{Problem:} How do we build a \emph{personalized, proactive, and privacy-preserving} financial intelligence platform that ingests raw multi-format bank statements, applies per-user machine learning models for categorization and anomaly detection, delivers real-time budget alerts, and remains horizontally scalable under production workloads -- all while maintaining a zero-trust security posture and full observability?
+\end{tcolorbox}
+
+\section{Specific Challenges Addressed}
+
+\begin{longtable}{p{3.5cm} p{10.5cm}}
+\toprule
+\textbf{Challenge} & \textbf{FinSight's Approach} \\
+\midrule
+\endfirsthead
+\multicolumn{2}{c}{\tablename\ \thetable{} -- continued}\\
+\toprule
+\textbf{Challenge} & \textbf{FinSight's Approach} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+
+Bank format heterogeneity & Intelligent column detection in \texttt{ingestion-service} using heuristic matching across CSV/XLS/PDF formats \\[4pt]
+Per-user behavioral modeling & LSTM autoencoder in \texttt{anomaly-detection-service} learns individual spending DNA, not a population average \\[4pt]
+Secrets sprawl & HashiCorp Vault with Kubernetes Secrets bridge -- zero plaintext credentials in any config file \\[4pt]
+ML inference scalability & Kubernetes HPA on \texttt{anomaly-detection-service} and \texttt{categorization-service} (2--8 replicas, CPU \textgreater 70\%) \\[4pt]
+Real-time budget alerting & Kafka \texttt{budget.alerts} topic $\rightarrow$ \texttt{notification-service} $\rightarrow$ WebSocket/STOMP push to frontend \\[4pt]
+Log observability at scale & ELK Stack: structured JSON logs from all 18 services $\rightarrow$ Logstash $\rightarrow$ Elasticsearch $\rightarrow$ Kibana dashboards \\[4pt]
+Zero-downtime deployments & Kubernetes RollingUpdate (\texttt{maxUnavailable: 0, maxSurge: 1}) across all service deployments \\[4pt]
+Model drift & KL divergence computed in \texttt{model-training-service}; admin-triggerable retraining via Kafka \\[4pt]
+\end{longtable}
+
+%% ════════════════════════════════════════════════════════════════════════════
+\chapter{Technology Stack}
+%% ════════════════════════════════════════════════════════════════════════════
+
+\section{Stack Overview}
+
+\begin{figure}[H]
+  \centering
+  \begin{tcolorbox}[enhanced, colback=gray!10, colframe=gray!50,
+      width=\linewidth, height=5cm, arc=6pt, valign=center, halign=center]
+    \textcolor{gray!70}{\large\textit{[SCREENSHOT PLACEHOLDER: Technology Stack Diagram]}}
+  \end{tcolorbox}
+  \caption{FinSight Full Technology Stack}
+\end{figure}
+
+\section{Frontend}
+
+\begin{techbox}[Frontend -- React 18 + TypeScript + Vite]
+\begin{itemize}[leftmargin=1em, noitemsep]
+  \item \textbf{React 18} with TypeScript -- component framework with strict typing
+  \item \textbf{Vite} -- HMR-enabled build tool replacing Create React App
+  \item \textbf{Tailwind CSS} -- utility-first responsive styling
+  \item \textbf{Recharts} -- spending charts, trend lines, category breakdowns
+  \item \textbf{TanStack Query (React Query)} -- server-state management and API caching
+  \item \textbf{Zustand} -- lightweight client-state (auth session, user profile)
+  \item \textbf{React Router v6} -- client-side routing with protected routes
+  \item \textbf{Axios} -- HTTP client with JWT interceptors
+  \item \textbf{@react-oauth/google} -- Google OAuth 2.0 frontend flow
+\end{itemize}
+\end{techbox}
+
+\section{Backend -- Java Spring Boot Microservices}
+
+All Java services use \textbf{Java 21 + Spring Boot 3.x}, each with its own \texttt{Dockerfile}, database connection, Flyway migration history, and Spring Actuator health endpoints.
+
+\begin{longtable}{p{3.8cm} p{5cm} p{5.2cm}}
+\toprule
+\textbf{Service} & \textbf{Responsibility} & \textbf{Key Dependencies} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Service} & \textbf{Responsibility} & \textbf{Key Dependencies} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{api-gateway-service} & Auth enforcement, routing, rate limiting & Spring Cloud Gateway, Spring Security, jjwt \\[3pt]
+\texttt{user-service} & Registration, login, OAuth, profile & Spring Security, OAuth2 Client, Spring Data JPA \\[3pt]
+\texttt{ingestion-service} & File upload, parsing, Kafka publish & Spring Kafka, Apache POI, PDFBox, OpenCSV \\[3pt]
+\texttt{transaction-service} & CRUD, rules engine, deduplication & Spring Data JPA, Spring Kafka consumer \\[3pt]
+\texttt{budget-service} & Budget limits, real-time tracking, threshold alerts & Spring Data JPA, Spring Kafka \\[3pt]
+\texttt{notification-service} & In-app alerts, inbox, WebSocket push & Spring Kafka consumer, WebSocket (STOMP) \\[3pt]
+\texttt{admin-service} & User management, platform metrics, ML config & Spring Data JPA, Spring Security \\[3pt]
+\texttt{chat-service} & Query intake, ML orchestration, Gemini AI & Spring WebFlux, WebClient, Gemini API \\[3pt]
+\end{longtable}
+
+\section{Backend -- Python FastAPI ML Microservices}
+
+All ML services use \textbf{Python 3.11 + FastAPI}. Separation from Spring Boot is deliberate -- Python owns the data science ecosystem; Spring Boot owns user-facing transactional logic.
+
+\begin{longtable}{p{4.2cm} p{4.8cm} p{5cm}}
+\toprule
+\textbf{Service} & \textbf{Responsibility} & \textbf{Key Libraries} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Service} & \textbf{Responsibility} & \textbf{Key Libraries} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\texttt{categorization-service} & ML transaction categorization & scikit-learn, XGBoost, FastAPI, kafka-python \\[3pt]
+\texttt{anomaly-detection-service} & Per-user LSTM anomaly scorer & PyTorch, numpy, pandas, scikit-learn, kafka-python \\[3pt]
+\texttt{forecasting-service} & Category-wise spend forecasting & pandas, SQLAlchemy, psycopg2, PyJWT, kafka-python \\[3pt]
+\texttt{parsing-ml-service} & Intelligent bank statement parsing & pandas, pdfplumber, openpyxl, spaCy \\[3pt]
+\texttt{stress-score-service} & Composite financial stress scorer & scikit-learn, pandas, FastAPI \\[3pt]
+\texttt{model-training-service} & Retraining, drift detection, MLflow & MLflow, PyTorch, scikit-learn, scipy \\[3pt]
+\end{longtable}
+
+\section{Data Stores}
+
+\begin{longtable}{p{2.5cm} p{4.5cm} p{7cm}}
+\toprule
+\textbf{Store} & \textbf{Used By} & \textbf{Rationale} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Store} & \textbf{Used By} & \textbf{Rationale} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+PostgreSQL 15 & user-service, transaction-service, budget-service, notification-service, chat-service, admin-service & Relational, ACID-compliant structured financial data; schema-per-service isolation; Flyway migrations \\[3pt]
+MongoDB 7.0 & ingestion-service & Flexible document model for raw file metadata and parsing job state \\[3pt]
+Redis 7 & api-gateway (rate limiting, token cache), chat-service (session), simulation-service (cache) & Sub-millisecond reads, ephemeral data, token revocation set \\[3pt]
+\end{longtable}
+
+\section{Messaging -- Apache Kafka 3.x}
+
+\begin{techbox}[Kafka Topics]
+\begin{tabular}{ll}
+\texttt{transactions.ingested}      & Ingestion $\rightarrow$ Transaction service \& Anomaly detection \\
+\texttt{transactions.categorized}   & Categorization service $\rightarrow$ Transaction service \\
+\texttt{anomaly.alerts}             & Anomaly detection $\rightarrow$ Notification service \\
+\texttt{budget.alerts}              & Budget service $\rightarrow$ Notification service \\
+\texttt{model.retrain.trigger}      & Admin service $\rightarrow$ Model training service \\
+\end{tabular}
+\end{techbox}
+
+\section{DevOps \& Infrastructure Toolchain}
+
+\begin{longtable}{p{3.5cm} p{10.5cm}}
+\toprule
+\textbf{Tool} & \textbf{Role in FinSight} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Tool} & \textbf{Role in FinSight} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Git + GitHub & Version control, webhook trigger for Jenkins \\
+Jenkins & 7-stage CI/CD pipeline (Checkout $\rightarrow$ Build $\rightarrow$ Test $\rightarrow$ Docker $\rightarrow$ Push $\rightarrow$ Ansible $\rightarrow$ K8s) \\
+Docker + Compose & Containerization of all 18 services; local dev environment \\
+Docker Hub & Container image registry (\texttt{aayanksinghai/finsight-*}) \\
+Kubernetes (Minikube) & Production-like orchestration in \texttt{finsight} namespace \\
+Kubernetes HPA & Auto-scaling ML inference pods 2--8 replicas at CPU $>$ 70\% \\
+Ansible & Configuration management; deploy playbook \\
+HashiCorp Vault & Zero-plaintext secrets injection at runtime \\
+Prometheus + Grafana & Metrics scraping and infrastructure dashboards \\
+ELK Stack & Centralized log aggregation and Kibana analytics \\
+MLflow & ML experiment tracking, model versioning, model registry \\
+\end{longtable}
+
+%% ════════════════════════════════════════════════════════════════════════════
+\chapter{System Architecture}
+%% ════════════════════════════════════════════════════════════════════════════
+
+\section{High-Level Architecture}
+
+\begin{figure}[H]
+  \centering
+  \begin{tcolorbox}[enhanced, colback=gray!10, colframe=gray!50,
+      width=\linewidth, height=9cm, arc=6pt, valign=center, halign=center]
+    \textcolor{gray!70}{\Large\textit{[SCREENSHOT PLACEHOLDER: Full System Architecture Diagram]}}\\[6pt]
+    \textcolor{gray!60}{\small React Frontend $\rightarrow$ API Gateway $\rightarrow$ [Spring Boot Services] $\rightarrow$ [Python ML Services]}\\
+    \textcolor{gray!60}{\small Kafka event bus $\leftrightarrow$ Notification service $\rightarrow$ WebSocket $\rightarrow$ Frontend}
+  \end{tcolorbox}
+  \caption{FinSight System Architecture -- Microservices, Messaging, and Observability}
+\end{figure}
+
+\section{Architectural Layers}
+
+\subsection{Layer 1 -- Presentation (React SPA)}
+The frontend is a single-page application served by Nginx inside a Docker container. All API requests are proxied through the API Gateway on port \texttt{8090}. The React app uses Zustand for auth state and TanStack Query for server-state caching. WebSocket connections for real-time notifications are established via SockJS/STOMP directly to the \texttt{notification-service}.
+
+\subsection{Layer 2 -- API Gateway (Spring Cloud Gateway)}
+The API Gateway (\texttt{port 8090}, \texttt{NodePort 30090} in K8s) is the single entry point for all HTTP traffic. It enforces:
+\begin{itemize}[leftmargin=1.5em, noitemsep]
+  \item \textbf{JWT validation} via RS256 public key -- all protected routes validated before forwarding
+  \item \textbf{Rate limiting} -- 100 requests per minute per authenticated user (Redis token bucket)
+  \item \textbf{CORS policy} for frontend origin
+  \item \textbf{Route configuration} to downstream services by path prefix
+\end{itemize}
+
+\subsection{Layer 3 -- Java Spring Boot Services}
+Eight stateless Spring Boot services handle all user-facing transactional logic. Each service:
+\begin{itemize}[leftmargin=1.5em, noitemsep]
+  \item Exposes \texttt{/actuator/health/liveness} and \texttt{/actuator/health/readiness} for K8s probes
+  \item Publishes structured JSON logs to Logstash via the ELK pipeline
+  \item Uses Flyway for database migration with per-service migration history tables
+  \item Injects secrets from K8s Secrets (populated from Vault) at runtime
+\end{itemize}
+
+\subsection{Layer 4 -- Python FastAPI ML Services}
+Six FastAPI services own the data-science layer. They communicate with Spring Boot via:
+\begin{itemize}[leftmargin=1.5em, noitemsep]
+  \item \textbf{Synchronous REST}: Spring Boot WebClient calls Python ML endpoints for inference
+  \item \textbf{Asynchronous Kafka}: categorization-service and anomaly-detection-service consume \texttt{transactions.ingested} and publish results back
+\end{itemize}
+
+\subsection{Layer 5 -- Event Bus (Apache Kafka)}
+Kafka is the asynchronous backbone decoupling ingestion from downstream processing. The \texttt{confluentinc/cp-kafka:7.5.0} image is used with Zookeeper. Key design: ingestion events are published by the ingestion-service; Python ML services consume and enrich; notification-service delivers real-time alerts to users.
+
+\subsection{Layer 6 -- Observability (ELK + Prometheus/Grafana)}
+Every microservice emits structured JSON logs to Logstash on port 5044. Logstash forwards to Elasticsearch 8.11. Kibana provides pre-built dashboards for ingestion rate, ML inference latency, error rate per service, and anomaly alert volume. Spring Boot Actuator and Micrometer expose Prometheus-format metrics scraped by Prometheus; Grafana visualizes CPU, memory, and request throughput per pod.
+
+\section{Inter-Service Communication Patterns}
+
+\begin{longtable}{p{3cm} p{5cm} p{6cm}}
+\toprule
+\textbf{Pattern} & \textbf{Used Between} & \textbf{Implementation} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Pattern} & \textbf{Used Between} & \textbf{Implementation} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Synchronous REST & React $\rightarrow$ Gateway $\rightarrow$ Spring Boot $\rightarrow$ Python ML & Spring WebFlux WebClient (reactive, non-blocking) \\[3pt]
+Asynchronous Events & Spring Boot $\rightarrow$ Kafka $\rightarrow$ Spring Boot / Python & spring-kafka / kafka-python consumers \\[3pt]
+WebSocket (STOMP) & notification-service $\rightarrow$ React frontend & SockJS over WebSocket, JWT auth on handshake \\[3pt]
+\end{longtable}
+
+\section{Authentication Flow}
+
+\begin{enumerate}[leftmargin=1.5em]
+  \item \textbf{Standard login:} User submits credentials $\rightarrow$ \texttt{user-service} validates bcrypt hash $\rightarrow$ issues RS256-signed JWT $\rightarrow$ stored in \texttt{httpOnly} cookie on frontend.
+  \item \textbf{Google OAuth:} React uses \texttt{@react-oauth/google} $\rightarrow$ sends \texttt{id\_token} to \texttt{user-service} $\rightarrow$ validated via Google's JWKS endpoint $\rightarrow$ JWT issued (new account created or existing linked on email match).
+  \item \textbf{Subsequent requests:} JWT validated at \texttt{api-gateway-service} via Spring Security filter chain before any route is forwarded.
+  \item \textbf{Token refresh:} Refresh token sessions persisted in \texttt{refresh\_token\_sessions} table; access tokens tracked in \texttt{revoked\_access\_tokens} for invalidation on logout.
+\end{enumerate}
+
+\end{document}

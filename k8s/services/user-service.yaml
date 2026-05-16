@@ -1,0 +1,101 @@
+---
+# ── User Service ─────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: finsight
+  labels:
+    app: user-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: aayanksinghai/finsight-user-service:latest
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: finsight-config
+          env:
+            - name: DB_USER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_USER_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_PASSWORD
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_ISSUER
+            - name: JWT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_PUBLIC_KEY
+            - name: JWT_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_PRIVATE_KEY
+            - name: SPRING_FLYWAY_TABLE
+              value: flyway_schema_history_user
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 25
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: finsight
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 8081
+      targetPort: 8081

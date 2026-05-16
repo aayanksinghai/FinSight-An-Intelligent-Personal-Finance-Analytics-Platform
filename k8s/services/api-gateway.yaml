@@ -1,0 +1,77 @@
+---
+# ── API Gateway ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: finsight
+  labels:
+    app: api-gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: aayanksinghai/finsight-api-gateway:latest
+          ports:
+            - containerPort: 8090
+          envFrom:
+            - configMapRef:
+                name: finsight-config
+          env:
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_ISSUER
+            - name: JWT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_PUBLIC_KEY
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8090
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8090
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: finsight
+spec:
+  selector:
+    app: api-gateway
+  type: NodePort
+  ports:
+    - port: 8090
+      targetPort: 8090
+      nodePort: 30090

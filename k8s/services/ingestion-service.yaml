@@ -1,0 +1,79 @@
+---
+# ── Ingestion Service ────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestion-service
+  namespace: finsight
+  labels:
+    app: ingestion-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ingestion-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: ingestion-service
+    spec:
+      containers:
+        - name: ingestion-service
+          image: aayanksinghai/finsight-ingestion-service:latest
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: finsight-config
+          env:
+            - name: SPRING_DATA_MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: MONGODB_URI
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_ISSUER
+            - name: JWT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_PUBLIC_KEY
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8082
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8082
+            initialDelaySeconds: 25
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-service
+  namespace: finsight
+spec:
+  selector:
+    app: ingestion-service
+  ports:
+    - port: 8082
+      targetPort: 8082

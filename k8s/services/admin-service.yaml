@@ -1,0 +1,91 @@
+---
+# ── Admin Service ────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-service
+  namespace: finsight
+  labels:
+    app: admin-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: admin-service
+    spec:
+      containers:
+        - name: admin-service
+          image: aayanksinghai/finsight-admin-service:latest
+          ports:
+            - containerPort: 8088
+          envFrom:
+            - configMapRef:
+                name: finsight-config
+          env:
+            - name: DB_USER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_USER_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_PASSWORD
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_ISSUER
+            - name: JWT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_PUBLIC_KEY
+            - name: SPRING_FLYWAY_TABLE
+              value: flyway_schema_history_admin
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8088
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8088
+            initialDelaySeconds: 25
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: finsight
+spec:
+  selector:
+    app: admin-service
+  ports:
+    - port: 8088
+      targetPort: 8088

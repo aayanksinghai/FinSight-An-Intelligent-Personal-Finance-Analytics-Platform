@@ -1,18 +1,10 @@
-# Build stage
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-ARG VITE_GOOGLE_CLIENT_ID
-ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
-COPY . .
-RUN npm run build
-
-# Serve stage
+# Serve stage (Single stage build using local verified dist)
 FROM nginx:alpine
-# Copy built assets from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
-# Provide highly permissive single page application routing
+
+# Copy local built assets
+COPY dist /usr/share/nginx/html
+
+# Provide highly permissive single page application routing and proxying
 RUN echo 'server { \
     listen 80; \
     location / { \
@@ -22,6 +14,8 @@ RUN echo 'server { \
     location /api/ { \
         proxy_pass http://api-gateway:8090/api/; \
         proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
     } \
     location /ws/ { \
         proxy_pass http://api-gateway:8090/ws/; \

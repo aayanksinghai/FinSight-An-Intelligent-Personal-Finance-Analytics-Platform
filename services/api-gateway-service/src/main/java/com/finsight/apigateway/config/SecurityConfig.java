@@ -27,8 +27,7 @@ public class SecurityConfig {
             Converter<Jwt, Mono<AbstractAuthenticationToken>> jwtAuthenticationConverter) {
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .cors(cors -> {
-                })
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers(
@@ -52,7 +51,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:*",
-                "http://127.0.0.1:*"));
+                "http://127.0.0.1:*",
+                "http://192.168.49.2:*",
+                "http://192.168.59.103:*",
+                "http://*:30080",
+                "http://*:3000"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

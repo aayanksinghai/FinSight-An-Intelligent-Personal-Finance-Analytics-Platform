@@ -1,0 +1,96 @@
+---
+# ── Chat Service ─────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+  namespace: finsight
+  labels:
+    app: chat-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chat-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      containers:
+        - name: chat-service
+          image: aayanksinghai/finsight-chat-service:latest
+          ports:
+            - containerPort: 8087
+          envFrom:
+            - configMapRef:
+                name: finsight-config
+          env:
+            - name: DB_USER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_USER_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_PASSWORD
+            - name: JWT_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_ISSUER
+            - name: JWT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_PUBLIC_KEY
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: GEMINI_API_KEY
+            - name: SPRING_FLYWAY_TABLE
+              value: flyway_schema_history_chat
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8087
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8087
+            initialDelaySeconds: 25
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+  namespace: finsight
+spec:
+  selector:
+    app: chat-service
+  ports:
+    - port: 8087
+      targetPort: 8087

@@ -13,8 +13,11 @@ import {
 import forecastApi, { AccuracyResponse } from '../api/forecastApi';
 import { broadcastAnnouncement } from '../api/notificationApi';
 
+type AdminTab = 'dashboard' | 'kibana';
+
 export default function AdminPage() {
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [totalUsers, setTotalUsers] = useState<number>(0);
   const [totalTxns, setTotalTxns] = useState<number>(0);
   const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null);
@@ -106,16 +109,38 @@ export default function AdminPage() {
     );
   }
 
+  const kibanaUrl = import.meta.env.VITE_KIBANA_URL || 'http://localhost:5601';
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in pb-8">
+      {/* ── Page header ── */}
       <div className="flex items-center justify-between border-b border-white/10 pb-4">
         <div>
           <h1 className="text-2xl font-bold text-[#edf2ff]">Platform Administration</h1>
-          <p className="text-sm text-muted">Global analytics, ML thresholds, and job monitors.</p>
+          <p className="text-sm text-muted">Global analytics, ML thresholds, and observability.</p>
         </div>
-        <button className="btn-primary" onClick={loadDashboard}>
-          ↺ Refresh
-        </button>
+        {activeTab === 'dashboard' && (
+          <button className="btn-primary" onClick={loadDashboard}>
+            ↺ Refresh
+          </button>
+        )}
+      </div>
+
+      {/* ── Tab navigation ── */}
+      <div className="flex gap-1 bg-white/5 border border-white/10 rounded-xl p-1 w-fit">
+        {(['dashboard', 'kibana'] as AdminTab[]).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              activeTab === tab
+                ? 'bg-brand text-white shadow-lg shadow-brand/30'
+                : 'text-muted hover:text-white hover:bg-white/10'
+            }`}
+          >
+            {tab === 'dashboard' ? '📊 Dashboard' : '🔍 Kibana Logs'}
+          </button>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -252,6 +277,50 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* ══════════════ KIBANA TAB ══════════════ */}
+      {activeTab === 'kibana' && (
+        <div className="flex flex-col gap-4">
+          {/* Info banner */}
+          <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+            <span className="text-amber-400 text-lg mt-0.5">ℹ️</span>
+            <div className="text-sm">
+              <p className="font-semibold text-amber-300 mb-1">First-time setup</p>
+              <p className="text-muted">
+                If no data appears, open Kibana → <strong className="text-white">Management → Stack Management → Index Patterns</strong> and create a pattern
+                matching <code className="bg-white/10 px-1 rounded text-xs text-amber-200">finsight-logs-*</code> with time field <code className="bg-white/10 px-1 rounded text-xs text-amber-200">@timestamp</code>.
+              </p>
+            </div>
+          </div>
+
+          {/* Action row */}
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted">Embedded Kibana at <code className="text-brand text-xs">{kibanaUrl}</code></p>
+            <a
+              href={kibanaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ghost text-sm flex items-center gap-2 border border-white/10 px-4 py-2 rounded-lg hover:bg-white/10"
+            >
+              ↗ Open in New Tab
+            </a>
+          </div>
+
+          {/* Kibana iframe */}
+          <div className="glass-card p-0 overflow-hidden" style={{ height: '80vh' }}>
+            <iframe
+              src={kibanaUrl}
+              title="Kibana Dashboard"
+              className="w-full h-full border-0 rounded-xl"
+              allow="fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* hide dashboard content when Kibana tab is active */}
+      {activeTab !== 'kibana' && null}
     </div>
   );
 }

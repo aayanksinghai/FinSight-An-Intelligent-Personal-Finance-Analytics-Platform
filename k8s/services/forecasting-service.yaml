@@ -1,0 +1,83 @@
+---
+# ── Forecasting Service (Python/FastAPI) ─────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forecasting-service
+  namespace: finsight
+  labels:
+    app: forecasting-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: forecasting-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: forecasting-service
+    spec:
+      containers:
+        - name: forecasting-service
+          image: aayanksinghai/finsight-forecasting-service:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_URL
+              value: "postgresql://$(DB_USERNAME):$(DB_PASSWORD)@postgres:5432/finsight?options=-csearch_path%3Dtransaction_schema"
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: DB_PASSWORD
+            - name: JWT_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: finsight-secrets
+                  key: JWT_PUBLIC_KEY
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: finsight-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "300m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forecasting-service
+  namespace: finsight
+spec:
+  selector:
+    app: forecasting-service
+  ports:
+    - port: 8000
+      targetPort: 8000
